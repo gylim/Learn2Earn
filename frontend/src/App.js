@@ -1,6 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import Connect from './components/Connect'
-import Questions from './components/Questions'
+import Connect from './components/Connect';
+import Questions from './components/Questions';
+import abi from "./artifacts/LearnToEarn.json";
+import {ethers} from "ethers";
+import { getJsonWalletAddress } from 'ethers/lib/utils';
 
 function App() {
   const [finalScore, setFinalScore] = useState(0);
@@ -9,6 +12,12 @@ function App() {
   const [answer, setAnswer] = useState({});
   const [checkAns, setCheckAns] = useState(false);
   const [currentAccount, setCurrentAccount] = useState("");
+  const [isStudent, setIsStudent] = useState(false);
+  const [sessions, setSessions] = useState(0);
+  const [tuitionFee, setTuitionFee] = useState(0);
+  const [acceptNew, setAcceptNew] = useState(false);
+  const contractAdd = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+  const contractABI = abi.abi;
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -41,6 +50,36 @@ function App() {
       } catch (error) {
           console.log(error)
       }
+  }
+
+  const register = async () => {
+    const {ethereum} = window;
+    try {
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
+        await learn2earnContract.register({ value: tuitionFee });
+        const [check, _] = await learn2earnContract.isStudent(await signer.getAddress());
+        setIsStudent(check);
+      } else console.log("Ethereum object not present");
+    } catch (err) {console.log(err)}
+  }
+
+  const tuition = (event) => {
+    setTuitionFee(ethers.utils.parseUnits(event.target.value, "ether"));
+  }
+
+  const ping = async () => {
+    const {ethereum} = window;
+    try {
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = await provider.getSigner();
+        const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
+        await learn2earnContract.ping();
+      } else console.log("Ethereum object not present");
+    } catch (err) {console.log(err)}
   }
 
   function shuffle(array) {
@@ -77,7 +116,7 @@ function App() {
     setIsOpen(prev => !prev);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setCheckAns(true);
     setFinalScore(trivia.reduce((score, triv) => {
@@ -89,6 +128,9 @@ function App() {
       }
       return score;
     }, 0));
+    if (finalScore > trivia.length/2) {
+      await ping();
+    }
   }
 
   const fetchData = async () => {
@@ -100,14 +142,33 @@ function App() {
   function resetQuiz() {
     setCheckAns(false);
     setFinalScore(0);
-    fetchData()
-      .catch(console.error);
+    fetchData().catch(console.error);
   }
 
   useEffect(function () {
     checkIfWalletIsConnected();
     fetchData().catch(console.error)
   }, [])
+
+  useEffect(() => {
+    const contractData = async () => {
+      const {ethereum} = window;
+      try {
+        if (ethereum) {
+          const provider = new ethers.providers.Web3Provider(ethereum);
+          const signer = provider.getSigner();
+          const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
+          const lessons = await learn2earnContract.sessions();
+          const accepting = await learn2earnContract.open();
+          const [check, _] = await learn2earnContract.isStudent(await signer.getAddress());
+          setIsStudent(check);
+          setSessions(ethers.utils.formatUnits(lessons, 0));
+          setAcceptNew(accepting);
+        } else console.log("Ethereum object not present");
+      } catch (err) {console.log(err)}
+    }
+    contractData();
+  }, [currentAccount])
 
   const QnA = trivia.length>0 ? trivia.map(triv => {
     return(<Questions
@@ -122,7 +183,12 @@ function App() {
 
   return (
     <div className="App">
-      {!isOpen && <Connect toggle={toggle} connectWallet={connectWallet} currentAccount={currentAccount}/>}
+      {!isOpen &&
+        <Connect toggle={toggle} connectWallet={connectWallet}
+          currentAccount={currentAccount} isStudent={isStudent}
+          register={register} acceptNew={acceptNew}
+          sessions={sessions} tuition={tuition}
+          />}
       {isOpen && <div className="quiz">
         <h2 className="title">Here is today's assignment</h2>
         {QnA}
