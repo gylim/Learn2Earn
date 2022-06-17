@@ -3,7 +3,6 @@ import Connect from './components/Connect';
 import Questions from './components/Questions';
 import abi from "./artifacts/LearnToEarn.json";
 import {ethers} from "ethers";
-import { getJsonWalletAddress } from 'ethers/lib/utils';
 
 function App() {
   const [finalScore, setFinalScore] = useState(0);
@@ -16,7 +15,7 @@ function App() {
   const [sessions, setSessions] = useState(0);
   const [tuitionFee, setTuitionFee] = useState(0);
   const [acceptNew, setAcceptNew] = useState(false);
-  const contractAdd = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+  const contractAdd = "0xadEC25d0c67221Ae483DBD5Bef8Ac90f842dD330";
   const contractABI = abi.abi;
 
   const checkIfWalletIsConnected = async () => {
@@ -59,27 +58,32 @@ function App() {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
-        await learn2earnContract.register({ value: tuitionFee });
-        const [check, _] = await learn2earnContract.isStudent(await signer.getAddress());
+        await learn2earnContract.register({ value: ethers.utils.parseUnits(tuitionFee, "ether") });
+        const [check, ] = await learn2earnContract.isStudent(await signer.getAddress());
         setIsStudent(check);
       } else console.log("Ethereum object not present");
     } catch (err) {console.log(err)}
   }
 
   const tuition = (event) => {
-    setTuitionFee(ethers.utils.parseUnits(event.target.value, "ether"));
+    setTuitionFee(event.target.value);
   }
 
   const ping = async () => {
-    const {ethereum} = window;
-    try {
-      if (ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = await provider.getSigner();
-        const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
-        await learn2earnContract.ping();
-      } else console.log("Ethereum object not present");
-    } catch (err) {console.log(err)}
+    if (checkAns === true && finalScore > trivia.length/2) {
+      const {ethereum} = window;
+      try {
+        if (ethereum) {
+          const provider = new ethers.providers.Web3Provider(ethereum);
+          const signer = await provider.getSigner();
+          const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
+          await learn2earnContract.ping();
+        } else console.log("Ethereum object not present");
+      } catch (err) {console.log(err)}
+    }
+    if (checkAns === true && finalScore < trivia.length/2) {
+      alert("You need to pass the assessment to record your learning - try again!")
+    }
   }
 
   function shuffle(array) {
@@ -116,7 +120,7 @@ function App() {
     setIsOpen(prev => !prev);
   }
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
     setCheckAns(true);
     setFinalScore(trivia.reduce((score, triv) => {
@@ -128,9 +132,6 @@ function App() {
       }
       return score;
     }, 0));
-    if (finalScore > trivia.length/2) {
-      await ping();
-    }
   }
 
   const fetchData = async () => {
@@ -160,7 +161,7 @@ function App() {
           const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
           const lessons = await learn2earnContract.sessions();
           const accepting = await learn2earnContract.open();
-          const [check, _] = await learn2earnContract.isStudent(await signer.getAddress());
+          const [check, ] = await learn2earnContract.isStudent(await signer.getAddress());
           setIsStudent(check);
           setSessions(ethers.utils.formatUnits(lessons, 0));
           setAcceptNew(accepting);
@@ -169,6 +170,10 @@ function App() {
     }
     contractData();
   }, [currentAccount])
+
+  useEffect(() => {
+    ping();
+  }, [finalScore])
 
   const QnA = trivia.length>0 ? trivia.map(triv => {
     return(<Questions
@@ -188,6 +193,7 @@ function App() {
           currentAccount={currentAccount} isStudent={isStudent}
           register={register} acceptNew={acceptNew}
           sessions={sessions} tuition={tuition}
+          tuitionFee={tuitionFee}
           />}
       {isOpen && <div className="quiz">
         <h2 className="title">Here is today's assignment</h2>

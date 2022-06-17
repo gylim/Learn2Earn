@@ -7,7 +7,7 @@ export default function Connect(props) {
                 <p className='open-desc'>The current cohort has {props.sessions} lessons</p>
                 <h2 className='sub-title'>How much do you want to deposit?</h2>
                 <label>
-                    <input type='text' className='input' onChange={(e) => props.tuition(e)} />
+                    <input type='text' className='input' value={props.tuitionFee} onChange={(e) => props.tuition(e)} />
                     ETH
                 </label>
                 <button className="open-btn" onClick={props.register}>Register</button>
