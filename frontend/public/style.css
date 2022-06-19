@@ -24,7 +24,7 @@ body {
 
   .sub-title {
     font-family: 'Karla';
-    font-weight: 700;
+    font-weight: 500;
     font-size: 26px;
   }
 
@@ -120,4 +120,8 @@ body {
     justify-content: center;
     align-items: center;
     width: 100%
+  }
+
+  button:disabled {
+      opacity: 0.5;
   }

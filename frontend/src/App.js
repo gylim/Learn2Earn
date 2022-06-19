@@ -15,8 +15,13 @@ function App() {
   const [sessions, setSessions] = useState(0);
   const [tuitionFee, setTuitionFee] = useState(0);
   const [acceptNew, setAcceptNew] = useState(false);
+  const [loading, setLoading] = useState(false);
   const contractAdd = "0xadEC25d0c67221Ae483DBD5Bef8Ac90f842dD330";
   const contractABI = abi.abi;
+
+  const shortenAddress = (str) => {
+    return str.substring(0, 6) + "..." + str.substring(str.length - 4);
+  };
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -52,13 +57,17 @@ function App() {
   }
 
   const register = async () => {
+    setLoading(true);
     const {ethereum} = window;
     try {
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
-        await learn2earnContract.register({ value: ethers.utils.parseUnits(tuitionFee, "ether") });
+        const txn = await learn2earnContract.register({ value: ethers.utils.parseUnits(tuitionFee, "ether") });
+        await txn.wait();
+        console.log(txn);
+        if (txn.hash) setLoading(false);
         const [check, ] = await learn2earnContract.isStudent(await signer.getAddress());
         setIsStudent(check);
       } else console.log("Ethereum object not present");
@@ -70,6 +79,7 @@ function App() {
   }
 
   const ping = async () => {
+    setLoading(true);
     if (checkAns === true && finalScore > trivia.length/2) {
       const {ethereum} = window;
       try {
@@ -77,12 +87,16 @@ function App() {
           const provider = new ethers.providers.Web3Provider(ethereum);
           const signer = await provider.getSigner();
           const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
-          await learn2earnContract.ping();
+          const txn = await learn2earnContract.ping();
+          await txn.wait();
+          if (txn.hash) setLoading(false);
         } else console.log("Ethereum object not present");
       } catch (err) {console.log(err)}
-    }
-    if (checkAns === true && finalScore < trivia.length/2) {
+    } else if (checkAns === true && finalScore < trivia.length/2) {
       alert("You need to pass the assessment to record your learning - try again!")
+      setLoading(false);
+    } else {
+      setLoading(false);
     }
   }
 
@@ -135,7 +149,7 @@ function App() {
   }
 
   const fetchData = async () => {
-    const res = await fetch('https://opentdb.com/api.php?amount=5&category=18');
+    const res = await fetch('https://opentdb.com/api.php?amount=5');
     const data = await res.json();
     setTrivia(processData(data));
   }
@@ -175,9 +189,8 @@ function App() {
     ping();
   }, [finalScore])
 
-  const QnA = trivia.length>0 ? trivia.map(triv => {
+  const QnA = trivia.length>0 ? trivia.map((triv,idx) => {
     return(<Questions
-      key={triv.question}
       question={triv.question}
       options={triv.options}
       correct={triv.correct_answer}
@@ -192,15 +205,15 @@ function App() {
         <Connect toggle={toggle} connectWallet={connectWallet}
           currentAccount={currentAccount} isStudent={isStudent}
           register={register} acceptNew={acceptNew}
-          sessions={sessions} tuition={tuition}
-          tuitionFee={tuitionFee}
+          sessions={sessions} tuition={tuition} loading={loading}
+          tuitionFee={tuitionFee} shortenAddress={shortenAddress}
           />}
       {isOpen && <div className="quiz">
         <h2 className="title">Here is today's assignment</h2>
         {QnA}
         {checkAns ? <div className='score-reset'>
           <p className='score'>You scored {finalScore}/{trivia.length} correct answers</p>
-          <button className='open-btn' onClick={resetQuiz}>Next Test</button>
+          <button className='open-btn' onClick={resetQuiz} disabled={loading}>{loading ? "Pinging Contract" : "Next Test"}</button>
         </div> : <div className='check-ans'><button className='open-btn' onClick={(e) => handleSubmit(e)}>Check Answers</button></div>}
       </div>}
     </div>
