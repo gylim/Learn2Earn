@@ -5,7 +5,7 @@ body {
 
   .App {
     background-color: #F5F7FB;
-    height: 100vh;
+    height: 100%;
   }
 
   .open-container {
@@ -13,25 +13,26 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100%;
   }
 
   .open-title {
     font-family: 'Karla';
     font-weight: 700;
-    font-size: 31px;
+    font-size: 30px;
   }
 
   .sub-title {
     font-family: 'Karla';
     font-weight: 500;
-    font-size: 26px;
+    font-size: 24px;
   }
 
   .open-desc {
     font-family: 'Inter';
     font-weight: 400;
     font-size: 16px;
+    padding: 0 6rem;
   }
 
   .open-btn {
@@ -123,5 +124,9 @@ body {
   }
 
   button:disabled {
-      opacity: 0.5;
+    opacity: 0.5;
+  }
+
+  .youtube {
+    display: inline-flex;
   }
