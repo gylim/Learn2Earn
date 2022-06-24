@@ -3,6 +3,7 @@ import Connect from './components/Connect';
 import Questions from './components/Questions';
 import abi from "./artifacts/LearnToEarn.json";
 import {ethers} from "ethers";
+import quizData from "./L2Equiz.json"
 
 function App() {
   const [finalScore, setFinalScore] = useState(0);
@@ -149,9 +150,10 @@ function App() {
   }
 
   const fetchData = async () => {
-    const res = await fetch('https://opentdb.com/api.php?amount=5');
-    const data = await res.json();
-    setTrivia(processData(data));
+    // const res = await fetch('https://opentdb.com/api.php?amount=5');
+    // const data = await res.json();
+
+    setTrivia(processData(quizData));
   }
 
   function resetQuiz() {
