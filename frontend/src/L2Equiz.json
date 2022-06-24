@@ -12,7 +12,7 @@
           "An online network that can be easily hacked or manipulated",
           "Internet with unicorns"
         ],
-        "correct_answer": 2
+        "correct_answer": "Decentralized internet"
       },
       {
         "number": 2,
@@ -23,7 +23,7 @@
           "Costs - transactions are free",
           "Responsiveness - everything is done instantly"
         ],
-        "correct_answer": 1
+        "correct_answer": "Scalability - transactions can be quite slow"
       },
       {
         "number": 3,
@@ -34,7 +34,7 @@
           "Payment apps require no personal data and can't prevent payments",
           "Facebook can censor and delete any account"
         ],
-        "correct_answer": 3
+        "correct_answer": "Payment apps require no personal data and can't prevent payments"
       },
       {
         "number": 4,
@@ -45,7 +45,7 @@
           "Early investors share profits with late investors",
           "Companies never experience data breaches"
         ],
-        "correct_answer": 2
+        "correct_answer": "Companies steal our data and use it as they please"
       },
       {
         "number": 5,
@@ -56,7 +56,7 @@
           "Slower transactions",
           "Giving the web back to the people"
         ],
-        "correct_answer": 1
+        "correct_answer": "More transparency"
       }
     ]
   },
