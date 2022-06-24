@@ -1,5 +1,3 @@
-// return funds to users
-// restart the contract
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
@@ -7,16 +5,17 @@ pragma solidity ^0.8.7;
 // ./interfaces/KeeperCompatibleInterface.sol
 import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
-contract Counter is KeeperCompatibleInterface {
+contract Keeper is KeeperCompatibleInterface {
     // KEEPER check for 24hr
     // uint interval = 30 seconds; // maybe uint32 // use 1 days
     uint public immutable interval = 30 seconds;
-    uint public todayUTC0;
+    uint public todayUTC0 = 1656073265;
     uint public current;
     uint public tokenBal;
 
-    constructor(uint _todayUTC0) {
-        todayUTC0 = _todayUTC0;
+    constructor() {
+        // uint _todayUTC0
+        // todayUTC0 = _todayUTC0;
     }
 
     function calcInterestPrevPeriod() public {
