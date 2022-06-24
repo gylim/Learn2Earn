@@ -33,7 +33,7 @@ contract AaveInteraction {
         recipient = address(this);
     }
 
-    function deposit(uint256 number, address recipient) external payable {
+    function deposit() external payable {
         // Needed to convert native token into ERC20 token + recieve function
         // funds are wrapped and then deposited, `this` contract is the recipient of wrapped native token.
         gateway.depositETH{value: address(this).balance}(
@@ -43,13 +43,18 @@ contract AaveInteraction {
         );
     }
 
-    function withdraw() external {
+    function withdraw(address _recipient, uint256 _withdrawAmount) external {
         // Currently withdraws all funds
-        uint aBalance = aPolWMatic.balanceOf(address(this));
-        aPolWMatic.approve(address(gateway), aBalance);
+        // uint aBalance = aPolWMatic.balanceOf(address(this));
+        aPolWMatic.approve(address(gateway), _withdrawAmount);
 
         // sends unwrapped and store matic in SC
-        gateway.withdrawETH(ADDRESS_MATIC_POOL, aBalance, recipient);
+        gateway.withdrawETH(ADDRESS_MATIC_POOL, _withdrawAmount, recipient);
+
+        // send withdrawn funds to user
+        (bool success, ) = _recipient.call{value: address(this).balance}("");
+        require(success);
+        // maybe could condense, withdrawETH(,,_recipient)
     }
 
     function deleteItAll() public onlyOwner {
