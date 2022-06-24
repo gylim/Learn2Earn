@@ -1,0 +1,299 @@
+{
+  "module1": {
+    "number": 1,
+    "name": "Day 1 - Web3",
+    "questions": [
+      {
+        "number": 1,
+        "question": "What is Web3?",
+        "answers": [
+          "Centralized internet that a few organizations control",
+          "Decentralized internet",
+          "An online network that can be easily hacked or manipulated",
+          "Internet with unicorns"
+        ],
+        "correct_answer": 2
+      },
+      {
+        "number": 2,
+        "question": "What is a big limitation of Web3?",
+        "answers": [
+          "Scalability - transactions can be quite slow",
+          "Centralization - only a few people control it",
+          "Costs - transactions are free",
+          "Responsiveness - everything is done instantly"
+        ],
+        "correct_answer": 1
+      },
+      {
+        "number": 3,
+        "question": "Pick an example that describes Web3",
+        "answers": [
+          "Payment services may decide to not allow payments for certain types of work",
+          "Servers for gig-economy apps could go down and affect worker income",
+          "Payment apps require no personal data and can't prevent payments",
+          "Facebook can censor and delete any account"
+        ],
+        "correct_answer": 3
+      },
+      {
+        "number": 4,
+        "question": "What’s the problem with ownership of value in Web2?",
+        "answers": [
+          "None, we own everything on Web2",
+          "Companies steal our data and use it as they please",
+          "Early investors share profits with late investors",
+          "Companies never experience data breaches"
+        ],
+        "correct_answer": 2
+      },
+      {
+        "number": 5,
+        "question": "Which of the following is NOT an advantage of decentralization?",
+        "answers": [
+          "More transparency",
+          "Less wealth concentration at the top",
+          "Slower transactions",
+          "Giving the web back to the people"
+        ],
+        "correct_answer": 1
+      }
+    ]
+  },
+  "module2": {
+    "number": 2,
+    "name": "Day 2 - Blockchain",
+    "questions": [
+      {
+        "number": 1,
+        "question": "What is a node?",
+        "answers": [
+          "A type of cryptocurrency",
+          "A blockchain",
+          "An exchange",
+          "A computer on a blockchain network"
+        ],
+        "correct_answer": 4
+      },
+      {
+        "number": 2,
+        "question": "Who created Bitcoin?",
+        "answers": [
+          "Satoshi Nakamoto",
+          "Samsung",
+          "Apple",
+          "China"
+        ],
+        "correct_answer": 1
+      },
+      {
+        "number": 3,
+        "question": "What is a blockchain?",
+        "answers": [
+          "An exchange",
+          "A centralized ledger",
+          "A distributed ledger on a peer to peer network",
+          "A type of payment"
+        ],
+        "correct_answer": 3
+      },
+      {
+        "number": 4,
+        "question": "What is a genesis block?",
+        "answers": [
+          "The last block of a blockchain",
+          "The current block of a blockchain",
+          "The first block of a blockchain",
+          "The famous block that changed blockchain"
+        ],
+        "correct_answer": 3
+      },
+      {
+        "number": 5,
+        "question": "True or False: Blockchain is the same as Bitcoin.",
+        "answers": [
+          "True",
+          "False"
+        ],
+        "correct_answer": 2
+      }
+    ]
+  },
+  "module3": {
+    "number": 3,
+    "name": "Day 3 - Blockchain Explorer",
+    "questions": [
+      {
+        "number": 1,
+        "question": "What is a blockchain explorer?",
+        "answers": [
+          "A server that handles transactions",
+          "A software that is connected to nodes and draws data from the blockchain",
+          "A physical place where you can see all blocks",
+          "A substitute for a blockchain"
+        ],
+        "correct_answer": 2
+      },
+      {
+        "number": 2,
+        "question": "A transaction on the blockchain will stay there forever",
+        "answers": [
+          "True",
+          "False"
+        ],
+        "correct_answer": 1
+      },
+      {
+        "number": 3,
+        "question": "What is a miner?",
+        "answers": [
+          "A type of blockchain",
+          "An algorithm that predicts the next part of the chain",
+          "A person doing calculations to verify a transaction",
+          "Computers that verify and validate blockchain transactions"
+        ],
+        "correct_answer": 4
+      },
+      {
+        "number": 4,
+        "question": "When a record is on the blockchain, who can access it?",
+        "answers": [
+          "Multiple people simultaneously",
+          "One person at a time",
+          "Only people involved in the transaction"
+        ],
+        "correct_answer": 1
+      },
+      {
+        "number": 5,
+        "question": "Once records are submitted on the blockchain, can they be altered?",
+        "answers": [
+          "Yes, the parties can go back and alter it",
+          "Yes, but only within a certain time frame",
+          "No, they cannot be altered"
+        ],
+        "correct_answer": 3
+      }
+    ]
+  },
+  "module4": {
+    "number": 4,
+    "name": "Day 4 - Wallet",
+    "questions": [
+      {
+        "number": 1,
+        "question": "Where do you store your cryptocurrency?",
+        "answers": [
+          "Bank account",
+          "In my pocket",
+          "Wallet",
+          "CD player"
+        ],
+        "correct_answer": 3
+      },
+      {
+        "number": 2,
+        "question": "Where is the LEAST SAFE place to store your cryptocurrency?",
+        "answers": [
+          "On an exchange",
+          "In your pocket",
+          "In a hot wallet",
+          "In a cold wallet"
+        ],
+        "correct_answer": 1
+      },
+      {
+        "number": 3,
+        "question": "Where can you buy cryptocurrency?",
+        "answers": [
+          "Private transaction",
+          "An exchange",
+          "A Bitcoin ATM",
+          "All of the above"
+        ],
+        "correct_answer": 1
+      },
+      {
+        "number": 4,
+        "question": "What is a private key?",
+        "answers": [
+          "A key on a keychain",
+          "A key that’s publicly accessible",
+          "A key not to be given to the public",
+          "A key that you can use to hack someone’s car"
+        ],
+        "correct_answer": 3
+      },
+      {
+        "number": 5,
+        "question": "What is a public key?",
+        "answers": [
+          "A key that’s publicly accessible",
+          "A key that is only for you",
+          "A key that opens a secret door",
+          "A key that grants you access to someone’s account"
+        ],
+        "correct_answer": 2
+      }
+    ]
+  },
+  "module5": {
+    "number": 5,
+    "name": "Day 5 - Hashing",
+    "questions": [
+      {
+        "number": 1,
+        "question": "What does P2P stand for?",
+        "answers": [
+          "Password to Password",
+          "Peer to Peer",
+          "Product to Product",
+          "Private key to Public key"
+        ],
+        "correct_answer": 2
+      },
+      {
+        "number": 2,
+        "question": "Asymmetric encryption uses",
+        "answers": [
+          "Public keys only",
+          "Private keys only",
+          "Public and Private keys",
+          "Proof of Stake"
+        ],
+        "correct_answer": 3
+      },
+      {
+        "number": 3,
+        "question": "What is a hash function?",
+        "answers": [
+          "A fork",
+          "UTXO",
+          "Takes an input of any length and returns a fixed-length string",
+          "Gas"
+        ],
+        "correct_answer": 3
+      },
+      {
+        "number": 4,
+        "question": "What does a block in a blockchain consist of?",
+        "answers": [
+          "Transaction Data",
+          "Hash point",
+          "Timestamp",
+          "All of these above"
+        ],
+        "correct_answer": 4
+      },
+      {
+        "number": 5,
+        "question": "Cryptographic Hash Function transforms an arbitrary length of a fixed length string that act more or less as a Fingerprint of the document",
+        "answers": [
+          "Yes",
+          "No"
+        ],
+        "correct_answer": 1
+      }
+    ]
+  }
+}
