@@ -1,8 +1,8 @@
-const {ethers} = require("hardhat");
+const { ethers } = require("hardhat");
 
 async function main() {
   const LearnToEarn = await ethers.getContractFactory("LearnToEarn");
-  const learntoearn = await LearnToEarn.deploy(4);
+  const learntoearn = await LearnToEarn.deploy();
   await learntoearn.deployed();
   console.log("Learn2Earn deployed to:", learntoearn.address);
 }
