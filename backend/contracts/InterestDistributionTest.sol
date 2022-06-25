@@ -11,7 +11,7 @@ import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 interface IAaveInteraction {
     function deposit() external payable;
 
-    function withdraw(address _recipient, uint256 _withdrawAmount) external;
+    function withdraw(address _recipient, uint _withdrawAmount) external;
 }
 
 contract InterestDistributionTest is KeeperCompatibleInterface {
@@ -21,34 +21,63 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
 
     // Could neaten these up by using a struct, nested mapping ,iterable mapping??? 4444444444444444444444
     address[] public students;
-    mapping(address => uint256) initialDeposit;
-    mapping(address => uint256) interestEarned;
-    uint256 depositTotal;
-    mapping(address => uint256) recordedStartDay; // for payout
-    mapping(address => uint256) pingExpiresAt; // 2^32 -1 equals to 4294967295 = 07/02/2106
+    mapping(address => uint) public index;
+    mapping(address => uint) public initialDeposit;
+    mapping(address => uint) public interestEarned;
+    mapping(address => uint) public recordedStartDay; // for payout
+    mapping(address => uint) public pingExpiresAt; // 2^32 -1 equals to 4294967295 = 07/02/2106
 
-    uint256 public todayUTC0;
-    IERC20 aPolWMatic = IERC20(0x89a6AE840b3F8f489418933A220315eeA36d11fF);
+    function addStudent(address stu) internal {
+        index[stu] = students.length;
+        students.push(stu);
+    }
+
+    function removeUser(address stu) internal {
+        uint delStudentIndex = index[stu];
+        delete index[stu];
+        delete initialDeposit[stu];
+        delete interestEarned[stu];
+        delete recordedStartDay[stu];
+        delete pingExpiresAt[stu];
+
+        // Replace deleted user with last user
+        students[userIndex] = students[students.length - 1];
+        // Update the moved student's index
+        uint endStuAddress = students[students.length - 1];
+        index[endStuAddress] = delStudentIndex;
+        // Remove dead space
+        students.pop();
+
+        // // Visual demo:
+        // [address0, address1, address2, address3, address4]
+        // // Remove a2 and move a4 into it's slot
+        // [address0, address1, address4, address3]
+    }
+
+    uint public depositTotal;
+
+    IERC20 aPolWNative = IERC20(0x608D11E704baFb68CfEB154bF7Fd641120e33aD4);
 
     // Interface requires the correct deployed address for AaveInteraction contract (maybe pass through constructor??) 4444444444444444
-    // Create js file for complex constructor arguments 4444444444444444
-    address AaveInteraction = 0x490D6062ce2F9b8317ED8D37014e2C8Fb4Af8162;
+    address AaveInteraction = 0x57F1d07e453bae3B0B155e0dedc08E2D5946Fe35;
     IAaveInteraction aave = IAaveInteraction(AaveInteraction);
 
-    uint public interval = 120 seconds; // maybe uint32
-    uint public intervalDoubled = 2 * interval;
+    uint public interval; // maybe uint32
+    uint public todayUTC0;
 
-    constructor(uint256 _todayUTC0) payable {
-        todayUTC0 = _todayUTC0;
-        // for contract to have some gas(maybe not needed)
-        // deposit{value: msg.value}();
-        // Currently payable. Not necessary if all gas is passed to user
+    // Create js file for complex constructor arguments 4444444444444444
+    constructor(uint _interval) {
+        // Pass in number of seconds (day = 86400)
+        interval = _interval;
+        // Get most recent start period (midnight)
+        todayUTC0 = (block.timestamp / interval) * interval;
     }
 
     uint public prevATokenBal;
     uint public curATokenBal;
 
     function register() external payable {
+        require(msg.value > 0, "not enough funds deposited");
         // Issue interest from previous remuneration period
         calcInterestPrevPeriod();
 
@@ -68,15 +97,17 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         aave.deposit{value: msg.value}();
 
         // Update prevATokenBal for when register() calls calcInterestPrevPeriod() next time
-        prevATokenBal = aPolWMatic.balanceOf(AaveInteraction);
+        prevATokenBal = aPolWNative.balanceOf(AaveInteraction);
     }
 
     // The difference between the current and previous token balance is accrued interest
     // Exclude in-active parties from interest repayment
     // Distribute the accrued interest between active parties
+    uint public interestPrevPeriod;
+
     function calcInterestPrevPeriod() internal {
-        curATokenBal = aPolWMatic.balanceOf(AaveInteraction);
-        uint interestPrevPeriod = curATokenBal - prevATokenBal;
+        curATokenBal = aPolWNative.balanceOf(AaveInteraction);
+        interestPrevPeriod = curATokenBal - prevATokenBal; // always 0 or greater
 
         uint unclaimedInterest;
         uint unclaimedDepositTotal;
@@ -86,10 +117,13 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
             address student = students[i];
             uint deposit = initialDeposit[student];
 
-            uint studentShare = deposit / depositTotal;
+            // uint studentShare = deposit / depositTotal;
 
             if (pingExpiresAt[student] < block.timestamp) {
-                unclaimedInterest += interestPrevPeriod * studentShare;
+                // unclaimedInterest += interestPrevPeriod * studentShare;
+                unclaimedInterest +=
+                    (interestPrevPeriod * deposit) /
+                    depositTotal;
                 unclaimedDepositTotal += deposit;
             }
         }
@@ -99,20 +133,20 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
             address student = students[i];
             uint deposit = initialDeposit[student];
 
-            uint studentShare = deposit / depositTotal;
-            uint studentShareUnclaimed = deposit /
-                (depositTotal - unclaimedDepositTotal);
+            // uint studentShare = deposit / depositTotal;
+            // uint studentShareUnclaimed = deposit / (depositTotal - unclaimedDepositTotal);
 
-            if (pingExpiresAt[student] >= block.timestamp) {
-                // default share
-                interestEarned[student] += interestPrevPeriod * studentShare;
-                // share of unclaimed
-                interestEarned[student] +=
-                    unclaimedInterest *
-                    studentShareUnclaimed;
-
-                // Testing
-                // totalAwarded += interestPrevPeriod * studentShare;
+            if (depositTotal > unclaimedDepositTotal) {
+                if (pingExpiresAt[student] >= block.timestamp) {
+                    // default share
+                    interestEarned[student] +=
+                        (interestPrevPeriod * deposit) /
+                        depositTotal;
+                    // share of unclaimed
+                    interestEarned[student] +=
+                        (unclaimedInterest * deposit) /
+                        (depositTotal - unclaimedDepositTotal);
+                }
             }
         }
     }
@@ -168,7 +202,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         // );
         calcInterestPrevPeriod();
 
-        uint256 withdrawAmount = interestEarned[msg.sender] +
+        uint withdrawAmount = interestEarned[msg.sender] +
             initialDeposit[msg.sender];
         depositTotal -= initialDeposit[msg.sender];
         interestEarned[msg.sender] = 0;
@@ -180,51 +214,9 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         aave.withdraw(msg.sender, withdrawAmount);
 
         // Update prevATokenBal for when register() calls calcInterestPrevPeriod() next time
-        prevATokenBal = aPolWMatic.balanceOf(AaveInteraction);
+        prevATokenBal = aPolWNative.balanceOf(AaveInteraction);
     }
 
     // TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING
-
-    // Check the AdminContract/User balance
-    function getBalance(address tokenHolder) external view returns (uint256) {
-        return aPolWMatic.balanceOf(tokenHolder);
-    }
-
-    function getTodayUTC0() external view returns (uint256) {
-        return todayUTC0;
-    }
-
-    function getInterestEarnedOfUser(address student)
-        external
-        view
-        returns (uint256)
-    {
-        return interestEarned[student];
-    }
-
-    function getInitialDepositOfUser(address student)
-        external
-        view
-        returns (uint256)
-    {
-        return initialDeposit[student];
-    }
-
-    function getDepositTotal() external view returns (uint256) {
-        return depositTotal;
-    }
-
     // TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING
 }
-// on deployment of contract send some funds into aave (surplus funds will be added to this??)
-// user registers, their funds go into aave
-// store their initial deposit in a mapping
-// have an array of Struct which contains student address, this will allow awards to be given to users (maybe just array)
-// keeper will update user interest earnings based on their proportional deposited funds
-// keeper will check the ping status of each user in the array
-// if the ping status is true award funds
-// ping at any stage in a 24hr period to earn interest for the next 24hr period (use the Official start plus x days)
-
-// aave protocal aToken balance can only increase, so each keeper update will distribute funds (but is this accurate?? I can test this once set up. if not accurate withdraw then redeposit)
-// users can withdraw funds at any time, any forefitted earning go to procol
-// the next 24hr period they click ping and they become elidgable for reward

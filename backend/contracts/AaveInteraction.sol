@@ -18,12 +18,13 @@ contract AaveInteraction {
     uint16 public referralCode;
 
     // SEE: https://docs.aave.com/developers/deployed-contracts/v3-testnet-addresses
+    // WETHGateway && W<NATIVE>-AToken-<network> && PoolAddressesProvider-<network>
     IWETHGateway gateway =
-        IWETHGateway(0x2a58E9bbb5434FdA7FF78051a4B82cb0EF669C17);
-    IERC20 aPolWMatic = IERC20(0x89a6AE840b3F8f489418933A220315eeA36d11fF);
+        IWETHGateway(0xD1DECc6502cc690Bc85fAf618Da487d886E54Abe);
+    IERC20 aPolWNative = IERC20(0x608D11E704baFb68CfEB154bF7Fd641120e33aD4);
 
     // CONSTRUCTOR ARG 1:
-    // PoolAddressesProvider-Polygon-mumbai == 0x5343b5bA672Ae99d627A1C87866b8E53F47Db2E6
+    // PoolAddressesProvider-rinkeby == 0xBA6378f1c1D046e9EB0F538560BA7558546edF3C
     // `payable` allows remix to deploy with value
     constructor(IPoolAddressesProvider provider) payable {
         ADDRESSES_PROVIDER = provider;
@@ -45,8 +46,8 @@ contract AaveInteraction {
 
     function withdraw(address _recipient, uint256 _withdrawAmount) external {
         // Currently withdraws all funds
-        // uint aBalance = aPolWMatic.balanceOf(address(this));
-        aPolWMatic.approve(address(gateway), _withdrawAmount);
+        // uint aBalance = aPolWNative.balanceOf(address(this));
+        aPolWNative.approve(address(gateway), _withdrawAmount);
 
         // sends unwrapped and store matic in SC
         gateway.withdrawETH(ADDRESS_MATIC_POOL, _withdrawAmount, recipient);

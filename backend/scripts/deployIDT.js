@@ -5,7 +5,7 @@ async function main() {
     "InterestDistributionTest"
   );
   const interestDistributionTest = await InterestDistributionTest.deploy(
-    1656095677
+    1656171345
   );
 
   await interestDistributionTest.deployed();

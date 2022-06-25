@@ -45,11 +45,6 @@ contract InterestDistribution2 is KeeperCompatibleInterface {
         // Currently payable. Not necessary if all gas is passed to user
     }
 
-    // Check the AdminContract/User balance
-    function getBalance(address tokenHolder) external view returns (uint256) {
-        return aPolWMatic.balanceOf(tokenHolder);
-    }
-
     uint prevATokenBal;
     uint curATokenBal;
 
@@ -75,6 +70,8 @@ contract InterestDistribution2 is KeeperCompatibleInterface {
         prevATokenBal = aPolWMatic.balanceOf(AaveInteraction);
     }
 
+    // |----|---R--|----|
+
     // The difference between the current and previous token balance is accrued interest
     // Exclude in-active parties from interest repayment
     // Distribute the accrued interest between active parties
@@ -90,13 +87,18 @@ contract InterestDistribution2 is KeeperCompatibleInterface {
             address student = students[i];
             uint deposit = initialDeposit[student];
 
-            uint studentShare = deposit / depositTotal;
+            uint studentShare = deposit / depositTotal; //RED FLAG
 
             if (pingExpiresAt[student] < block.timestamp) {
-                unclaimedInterest += interestPrevPeriod * studentShare;
+                unclaimedInterest += interestPrevPeriod * studentShare; // (interestPrevPeriod * deposit) / depositTotal;
                 unclaimedDepositTotal += deposit;
             }
         }
+
+
+
+
+        
 
         // If active, student gets default and unclaimed share
         for (uint i = 0; i < students.length; i++) {
@@ -104,26 +106,19 @@ contract InterestDistribution2 is KeeperCompatibleInterface {
             uint deposit = initialDeposit[student];
 
             uint studentShare = deposit / depositTotal;
-            uint studentShareUnclaimed = deposit /
-                (depositTotal - unclaimedDepositTotal);
+            uint studentShareUnclaimed = deposit / (depositTotal - unclaimedDepositTotal);
 
             if (pingExpiresAt[student] >= block.timestamp) {
                 // default share
                 interestEarned[student] += interestPrevPeriod * studentShare;
                 // share of unclaimed
-                interestEarned[student] +=
-                    unclaimedInterest *
-                    studentShareUnclaimed;
-
-                // Testing
-                // totalAwarded += interestPrevPeriod * studentShare;
-            }
+                interestEarned[student] += unclaimedInterest * studentShareUnclaimed;
         }
     }
 
     // tUTC0 updates each 24hr period
     // ping  emits an expiration timestamp which lasts until the end of the next day (This allows spam/multiple pinging)
-    // |------|----p--|------|
+    // |------|----p--|------|------|------|
     //     tUTC0      +1     +2
     function ping() public {
         pingExpiresAt[msg.sender] = todayUTC0 + 2 days;
@@ -155,10 +150,10 @@ contract InterestDistribution2 is KeeperCompatibleInterface {
     function payout() external {
         // add security checks 4444444444444444444
         // recordedStartDay UTC0 + number of study days
-        require(
-            block.timestamp >= (recordedStartDay[msg.sender] + 5 days),
-            "You can only receive a payout once the study session is over"
-        );
+        // require(
+        //     block.timestamp >= (recordedStartDay[msg.sender] + 5 days),
+        //     "You can only receive a payout once the study session is over"
+        // );
         calcInterestPrevPeriod();
 
         uint256 withdrawAmount = interestEarned[msg.sender] +
