@@ -41,9 +41,9 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         delete pingExpiresAt[stu];
 
         // Replace deleted user with last user
-        students[userIndex] = students[students.length - 1];
+        students[delStudentIndex] = students[students.length - 1];
         // Update the moved student's index
-        uint endStuAddress = students[students.length - 1];
+        address endStuAddress = students[students.length - 1];
         index[endStuAddress] = delStudentIndex;
         // Remove dead space
         students.pop();
@@ -59,7 +59,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     IERC20 aPolWNative = IERC20(0x608D11E704baFb68CfEB154bF7Fd641120e33aD4);
 
     // Interface requires the correct deployed address for AaveInteraction contract (maybe pass through constructor??) 4444444444444444
-    address AaveInteraction = 0x57F1d07e453bae3B0B155e0dedc08E2D5946Fe35;
+    address AaveInteraction = 0x04930BB78fB25B66C78e8662F66Ea2053ABEE86A;
     IAaveInteraction aave = IAaveInteraction(AaveInteraction);
 
     uint public interval; // maybe uint32
@@ -154,7 +154,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     // tUTC0 updates each 24hr period
     // ping  emits an expiration timestamp which lasts until the end of the next day (This allows spam/multiple pinging)
     // |------|----p--|------|
-    //     tUTC0      +1     +2
+    //      tUTC0      +1     +2
     function ping() public {
         // pingExpiresAt[msg.sender] = todayUTC0 + 2 days;
         pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);

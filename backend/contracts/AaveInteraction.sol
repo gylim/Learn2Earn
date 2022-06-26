@@ -6,56 +6,51 @@ import "@aave/periphery-v3/contracts/misc/interfaces/IWETHGateway.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract AaveInteraction {
-    // Create varialbes to store pool address
-    IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
-    // address public immutable ADDRESS_WETH;
-    address public immutable ADDRESS_MATIC_POOL;
+    IWETHGateway immutable gateway;
+    IERC20 immutable aPolWNative;
+
+    // Get pool from addresses provider
+    address public immutable POOL;
 
     address owner;
-    // Deposit recipient (my Address -> change to MANAGEMENTcontract??)
+    // Deposit recipient
     address public recipient;
     // 0 as default because no middle man
     uint16 public referralCode;
 
-    // SEE: https://docs.aave.com/developers/deployed-contracts/v3-testnet-addresses
-    // WETHGateway && W<NATIVE>-AToken-<network> && PoolAddressesProvider-<network>
-    IWETHGateway gateway =
-        IWETHGateway(0xD1DECc6502cc690Bc85fAf618Da487d886E54Abe);
-    IERC20 aPolWNative = IERC20(0x608D11E704baFb68CfEB154bF7Fd641120e33aD4);
-
-    // CONSTRUCTOR ARG 1:
-    // PoolAddressesProvider-rinkeby == 0xBA6378f1c1D046e9EB0F538560BA7558546edF3C
-    // `payable` allows remix to deploy with value
-    constructor(IPoolAddressesProvider provider) payable {
-        ADDRESSES_PROVIDER = provider;
-        ADDRESS_MATIC_POOL = provider.getPool();
-
+    // See argumentsAI.js for details
+    constructor(
+        IPoolAddressesProvider _provider,
+        address _gateway,
+        address _token
+    ) {
+        POOL = _provider.getPool();
+        gateway = IWETHGateway(_gateway);
+        aPolWNative = IERC20(_token);
         owner = msg.sender;
         recipient = address(this);
     }
 
+    // Needed to convert native token into ERC20 token + recieve function
+    // funds are wrapped and then deposited, `this` contract is the recipient of wrapped native token.
     function deposit() external payable {
-        // Needed to convert native token into ERC20 token + recieve function
-        // funds are wrapped and then deposited, `this` contract is the recipient of wrapped native token.
         gateway.depositETH{value: address(this).balance}(
-            ADDRESS_MATIC_POOL,
+            POOL,
             recipient,
             referralCode
         );
     }
 
     function withdraw(address _recipient, uint256 _withdrawAmount) external {
-        // Currently withdraws all funds
-        // uint aBalance = aPolWNative.balanceOf(address(this));
         aPolWNative.approve(address(gateway), _withdrawAmount);
 
-        // sends unwrapped and store matic in SC
-        gateway.withdrawETH(ADDRESS_MATIC_POOL, _withdrawAmount, recipient);
+        // Uses aTokens, unwraps and sends to recipient
+        gateway.withdrawETH(POOL, _withdrawAmount, recipient); //change to _recipient (user) 44444444444444444444
 
         // send withdrawn funds to user
         (bool success, ) = _recipient.call{value: address(this).balance}("");
         require(success);
-        // maybe could condense, withdrawETH(,,_recipient)
+        // maybe could condense, withdrawETH(,,_recipient)44444444444444444444
     }
 
     function deleteItAll() public onlyOwner {
@@ -69,6 +64,7 @@ contract AaveInteraction {
 
     event Received(address, uint256);
 
+    // required to receive aTokens
     receive() external payable {
         emit Received(msg.sender, msg.value);
     }

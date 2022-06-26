@@ -70,7 +70,7 @@ contract InterestDistribution2 is KeeperCompatibleInterface {
         prevATokenBal = aPolWMatic.balanceOf(AaveInteraction);
     }
 
-    // |----|---R--|----|
+    // |----|---R--|---C-|
 
     // The difference between the current and previous token balance is accrued interest
     // Exclude in-active parties from interest repayment
@@ -95,24 +95,23 @@ contract InterestDistribution2 is KeeperCompatibleInterface {
             }
         }
 
-
-
-
-        
-
         // If active, student gets default and unclaimed share
         for (uint i = 0; i < students.length; i++) {
             address student = students[i];
             uint deposit = initialDeposit[student];
 
             uint studentShare = deposit / depositTotal;
-            uint studentShareUnclaimed = deposit / (depositTotal - unclaimedDepositTotal);
+            uint studentShareUnclaimed = deposit /
+                (depositTotal - unclaimedDepositTotal);
 
             if (pingExpiresAt[student] >= block.timestamp) {
                 // default share
                 interestEarned[student] += interestPrevPeriod * studentShare;
                 // share of unclaimed
-                interestEarned[student] += unclaimedInterest * studentShareUnclaimed;
+                interestEarned[student] +=
+                    unclaimedInterest *
+                    studentShareUnclaimed;
+            }
         }
     }
 

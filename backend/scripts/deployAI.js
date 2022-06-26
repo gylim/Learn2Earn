@@ -4,9 +4,17 @@ async function main() {
   const AaveInteraction = await hre.ethers.getContractFactory(
     "AaveInteraction"
   );
-  const lpAddressProviderAddress = "0xBA6378f1c1D046e9EB0F538560BA7558546edF3C"; // Polygon mainnet: 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb
+
+  // SEE: https://docs.aave.com/developers/deployed-contracts/v3-testnet-addresses
+  // WETHGateway && W<NATIVE>-AToken-<network> && PoolAddressesProvider-<network>
+  const lpAddressProviderAddress = "0xba6378f1c1d046e9eb0f538560ba7558546edf3c";
+  const wETHGatewayAddress = "0xd1decc6502cc690bc85faf618da487d886e54abe";
+  const wNativeATokenAddress = "0x608d11e704bafb68cfeb154bf7fd641120e33ad4";
+
   const aaveInteraction = await AaveInteraction.deploy(
-    lpAddressProviderAddress
+    lpAddressProviderAddress,
+    wETHGatewayAddress,
+    wNativeATokenAddress
   );
 
   await aaveInteraction.deployed();

@@ -4,9 +4,7 @@ async function main() {
   const InterestDistributionTest = await hre.ethers.getContractFactory(
     "InterestDistributionTest"
   );
-  const interestDistributionTest = await InterestDistributionTest.deploy(
-    1656171345
-  );
+  const interestDistributionTest = await InterestDistributionTest.deploy(600);
 
   await interestDistributionTest.deployed();
   console.log(
