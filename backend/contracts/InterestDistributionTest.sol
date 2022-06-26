@@ -29,7 +29,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     mapping(address => uint) public pingCount; // to track student progress for frontend
 
     // for frontend to determine if connected wallet is a student
-    function isStudent() public returns(bool) {
+    function isStudent() public view returns(bool) {
         for (uint i=0; i< students.length; i++) {
             if (students[i] == msg.sender) return true;
         }
