@@ -68,7 +68,7 @@ function App() {
         const txn = await learn2earnContract.register({ value: ethers.utils.parseUnits(tuitionFee, "ether") });
         await txn.wait();
         if (txn.hash) setLoading(false);
-        const check = await learn2earnContract.isStudent();
+        const check = await learn2earnContract.isStudent(await signer.getAddress());
         setIsStudent(check);
       } else console.log("Ethereum object not present");
     } catch (err) {console.log(err)}
@@ -186,7 +186,7 @@ function App() {
           const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
           const lessons = await learn2earnContract.interval();
           console.log(lessons);
-          const check = await learn2earnContract.isStudent();
+          const check = await learn2earnContract.isStudent(await signer.getAddress());
           setIsStudent(check);
           setSessions(ethers.utils.formatUnits(lessons, 0));
         } else console.log("Ethereum object not present");
