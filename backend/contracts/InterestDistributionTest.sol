@@ -26,7 +26,15 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     mapping(address => uint) public interestEarned;
     mapping(address => uint) public recordedStartDay; // for payout
     mapping(address => uint) public pingExpiresAt; // 2^32 -1 equals to 4294967295 = 07/02/2106
+    mapping(address => uint) public pingCount; // to track student progress for frontend
 
+    // for frontend to determine if connected wallet is a student
+    function isStudent() public returns(bool) {
+        for (uint i=0; i< students.length; i++) {
+            if (students[i] == msg.sender) return true;
+        }
+        return false;
+    }
     function addStudent(address stu) internal {
         index[stu] = students.length;
         students.push(stu);
@@ -39,6 +47,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         delete interestEarned[stu];
         delete recordedStartDay[stu];
         delete pingExpiresAt[stu];
+        delete pingCount[stu]; // for completeness
 
         // Replace deleted user with last user
         students[delStudentIndex] = students[students.length - 1];
@@ -77,6 +86,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     uint public curATokenBal;
 
     function register() external payable {
+        require(isStudent() == false, "You are already registered");
         require(msg.value > 0, "not enough funds deposited");
         // Issue interest from previous remuneration period
         calcInterestPrevPeriod();
@@ -91,7 +101,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         recordedStartDay[msg.sender] = todayUTC0 + interval;
 
         // ping active for rest of day + 1 days
-        ping();
+        pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
 
         //Deposit user funds into Aave
         aave.deposit{value: msg.value}();
@@ -156,7 +166,10 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     // |------|----p--|------|
     //      tUTC0      +1     +2
     function ping() public {
+        // check that caller is a student
+        require(isStudent() == false, "You must be registered to ping");
         pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
+        pingCount[msg.sender] += 1; // update pingCount for frontend
     }
 
     // KEEPER check for 24hr
