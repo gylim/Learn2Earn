@@ -26,7 +26,7 @@ export default function Connect(props) {
         <>
             <h2 className='sub-title'>Hi there, {x.shortenAddress(x.currentAccount)}!</h2>
             <p className='open-desc'>You are not registered yet.{"\n"}
-                The current cohort has {x.sessions} lessons
+                The frequency of check-in is {x.sessions/60} minutes
             </p>
             <p className='open-desc'>How much tuition would you like to deposit?{"\n"}
                 The more you put in, the more you get out!

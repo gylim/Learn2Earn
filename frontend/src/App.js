@@ -15,9 +15,9 @@ function App() {
   const [isStudent, setIsStudent] = useState(false);
   const [sessions, setSessions] = useState(0);
   const [tuitionFee, setTuitionFee] = useState(0);
-  const [acceptNew, setAcceptNew] = useState(false);
   const [loading, setLoading] = useState(false);
-  const contractAdd = "0xadEC25d0c67221Ae483DBD5Bef8Ac90f842dD330";
+  const [progress, setProgress] = useState("");
+  const contractAdd = "0x409bA74f5eb6FbAb55f13B6aF7087F4aB3FF0F0C";
   const contractABI = abi.abi;
 
   const shortenAddress = (str) => {
@@ -67,9 +67,8 @@ function App() {
         const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
         const txn = await learn2earnContract.register({ value: ethers.utils.parseUnits(tuitionFee, "ether") });
         await txn.wait();
-        console.log(txn);
         if (txn.hash) setLoading(false);
-        const [check, ] = await learn2earnContract.isStudent(await signer.getAddress());
+        const check = await learn2earnContract.isStudent();
         setIsStudent(check);
       } else console.log("Ethereum object not present");
     } catch (err) {console.log(err)}
@@ -152,7 +151,18 @@ function App() {
   const fetchData = async () => {
     // const res = await fetch('https://opentdb.com/api.php?amount=5');
     // const data = await res.json();
-    setTrivia(quizData.module1.questions);
+    const {ethereum} = window;
+    try {
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
+        const pingCount = await learn2earnContract.pingCount(await signer.getAddress());
+        console.log(pingCount);
+        setProgress("module" + ethers.utils.formatUnits(pingCount, 0).toString())
+      } else console.log("Ethereum object not present");
+    } catch (err) {console.log(err)}
+    setTrivia(quizData[progress].questions);
   }
 
   function resetQuiz() {
@@ -174,12 +184,11 @@ function App() {
           const provider = new ethers.providers.Web3Provider(ethereum);
           const signer = provider.getSigner();
           const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
-          const lessons = await learn2earnContract.sessions();
-          const accepting = await learn2earnContract.open();
-          const [check, ] = await learn2earnContract.isStudent(await signer.getAddress());
+          const lessons = await learn2earnContract.interval();
+          console.log(lessons);
+          const check = await learn2earnContract.isStudent();
           setIsStudent(check);
           setSessions(ethers.utils.formatUnits(lessons, 0));
-          setAcceptNew(accepting);
         } else console.log("Ethereum object not present");
       } catch (err) {console.log(err)}
     }
@@ -205,9 +214,9 @@ function App() {
       {!isOpen &&
         <Connect toggle={toggle} connectWallet={connectWallet}
           currentAccount={currentAccount} isStudent={isStudent}
-          register={register} acceptNew={acceptNew}
+          register={register} shortenAddress={shortenAddress}
           sessions={sessions} tuition={tuition} loading={loading}
-          tuitionFee={tuitionFee} shortenAddress={shortenAddress}
+          tuitionFee={tuitionFee}
           />}
       {isOpen && <div className="quiz">
         <h2 className="title">Here is today's assignment</h2>
