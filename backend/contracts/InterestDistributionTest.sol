@@ -156,12 +156,10 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     // |------|----p--|------|
     //      tUTC0      +1     +2
     function ping() public {
-        // pingExpiresAt[msg.sender] = todayUTC0 + 2 days;
         pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
     }
 
     // KEEPER check for 24hr
-
     function checkUpkeep(bytes calldata)
         external
         view
@@ -176,21 +174,10 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         if ((block.timestamp - todayUTC0) > interval) {
             todayUTC0 += interval;
             calcInterestPrevPeriod();
+            // Previous balance is updated to the Current balance as no additional funds are added (as in recipient)
             prevATokenBal = curATokenBal;
         }
     }
-
-    // function performUpkeep(bytes calldata) external override {
-    //     // Re-validation check
-    //     // if ((block.timestamp - todayUTC0) > interval) {
-    //     // Could automate todayUTC0 with % ?? where upkeep handles all time parameters 4444444444444444
-    //     // todayUTC0 += 1 days;
-    //     todayUTC0 += interval;
-    //     // calcInterestPrevPeriod();
-    //     // the previous balance is updated to the Current balance as no additional funds are added (as in recipient)
-    //     // prevATokenBal = curATokenBal;
-    //     // }
-    // }
 
     function payout() external {
         // add security checks 4444444444444444444
