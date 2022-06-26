@@ -3,6 +3,7 @@ import Connect from './components/Connect';
 import Questions from './components/Questions';
 import abi from "./artifacts/LearnToEarn.json";
 import {ethers} from "ethers";
+import quizData from "./L2Equiz.json"
 
 function App() {
   const [finalScore, setFinalScore] = useState(0);
@@ -100,26 +101,26 @@ function App() {
     }
   }
 
-  function shuffle(array) {
-    let currentIndex = array.length,  randomIndex;
-    while (currentIndex !== 0) {
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-      [array[currentIndex], array[randomIndex]] = [
-        array[randomIndex], array[currentIndex]];
-    }
-    return array;
-  }
+  // function shuffle(array) {
+  //   let currentIndex = array.length,  randomIndex;
+  //   while (currentIndex !== 0) {
+  //     randomIndex = Math.floor(Math.random() * currentIndex);
+  //     currentIndex--;
+  //     [array[currentIndex], array[randomIndex]] = [
+  //       array[randomIndex], array[currentIndex]];
+  //   }
+  //   return array;
+  // }
 
-  function processData(obj) {
-    let results = obj.results
-    for (let i=0; i < results.length; i++) {
-      let ans = (results[i].incorrect_answers).concat(results[i].correct_answer)
-      shuffle(ans)
-      results[i].options = ans
-    }
-    return results;
-  }
+  // function processData(obj) {
+  //   let results = obj.results
+  //   for (let i=0; i < results.length; i++) {
+  //     let ans = (results[i].incorrect_answers).concat(results[i].correct_answer)
+  //     shuffle(ans)
+  //     results[i].options = ans
+  //   }
+  //   return results;
+  // }
 
   function handleChange(event) {
     const {name, value} = event.target
@@ -149,9 +150,9 @@ function App() {
   }
 
   const fetchData = async () => {
-    const res = await fetch('https://opentdb.com/api.php?amount=5');
-    const data = await res.json();
-    setTrivia(processData(data));
+    // const res = await fetch('https://opentdb.com/api.php?amount=5');
+    // const data = await res.json();
+    setTrivia(quizData.module1.questions);
   }
 
   function resetQuiz() {
@@ -192,7 +193,7 @@ function App() {
   const QnA = trivia.length>0 ? trivia.map((triv,idx) => {
     return(<Questions
       question={triv.question}
-      options={triv.options}
+      options={triv.answers}
       correct={triv.correct_answer}
       answer={answer}
       handleChange={handleChange}
