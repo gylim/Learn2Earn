@@ -5,9 +5,26 @@ import "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@aave/periphery-v3/contracts/misc/interfaces/IWETHGateway.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+interface IInterestDistribution {
+    function getWithdrawAmount(address stu) external view returns (uint);
+
+    // function getStudentStatus() external view returns (bool);
+}
+
 contract AaveInteraction {
     IWETHGateway private immutable gateway;
     IERC20 private immutable aWNative;
+
+    bool public connected = false;
+    IInterestDistribution private distribution;
+    address private interestDistribution;
+
+    function setAddress(address _Distribution) external onlyOwner {
+        // require(!connected, "The contract has already been connected");
+        connected = true;
+        distribution = IInterestDistribution(_Distribution);
+        interestDistribution = _Distribution;
+    }
 
     // Get pool from addresses provider
     address private immutable POOL;
@@ -34,6 +51,7 @@ contract AaveInteraction {
      * @dev Wraps native token to ERC20 and deposits to aave
      */
     function deposit() external payable {
+        // Upgrade to onlyStudent Modifier 44444444444444444
         gateway.depositETH{value: address(this).balance}(
             POOL,
             aTokenHolder,
@@ -41,11 +59,15 @@ contract AaveInteraction {
         );
     }
 
-    function withdraw(address _recipient, uint256 _withdrawAmount) external {
-        aWNative.approve(address(gateway), _withdrawAmount);
+    function withdraw(address _recipient) external {
+        // Upgrade to onlyStudent Modifier 444444444444444444
+        // Read mappings from InterestDistribution
+        uint withdrawAmount = distribution.getWithdrawAmount(_recipient);
+
+        aWNative.approve(address(gateway), withdrawAmount);
 
         // Uses aTokens, unwraps and sends to _recipient
-        gateway.withdrawETH(POOL, _withdrawAmount, _recipient);
+        gateway.withdrawETH(POOL, withdrawAmount, _recipient);
     }
 
     function deleteItAll() external onlyOwner {
@@ -56,6 +78,20 @@ contract AaveInteraction {
         require(owner == msg.sender, "msg.sender must be the owner");
         _;
     }
+
+    // modifier onlyStudents() {
+    //     // (bool success, ) = interestDistribution.delegatecall(
+    //     //     abi.encodeWithSelector(distribution.getStudentStatus.selector)
+    //     // );
+    //     // require(success);
+    //     // require(distribution.getWithdrawAmount(student), "Only students can deposit funds");
+    //     // (Current issue Delegatecall, msg.sender will not be passed on correctly)
+    //     require(
+    //         distribution.getStudentStatus(msg.sender),
+    //         "You are not a registered student"
+    //     );
+    //     _;
+    // }
 
     event Received(address, uint256);
 

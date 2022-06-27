@@ -11,12 +11,20 @@ import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 interface IAaveInteraction {
     function deposit() external payable;
 
-    function withdraw(address _recipient, uint _withdrawAmount) external;
+    function withdraw(address _recipient) external;
+}
+
+interface ILearnToken {
+    function mintToken(address recipient, uint256 amount) external;
+
+    function transferOwnershipToken(address newOwner) external;
 }
 
 contract InterestDistributionTest is KeeperCompatibleInterface {
     IERC20 private immutable aWNative;
     IAaveInteraction private immutable aave;
+    ILearnToken private immutable LearnToken;
+    address public owner;
 
     // Testing
     uint public totalAwarded;
@@ -24,12 +32,28 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     // Change the below visibility to private 4444444444444444
     address[] public students;
     mapping(address => uint) public index;
+    mapping(address => bool) public studentStatus; // for front-end
     mapping(address => uint) public initialDeposit;
     mapping(address => uint) public interestEarned;
     mapping(address => uint) public recordedStartDay; // for payout
     mapping(address => uint) public pingExpiresAt; // 2^32 -1 equals to 4294967295 = 07/02/2106
+    mapping(address => uint) public pingCount; // to track student progress for frontend
+
+    // For AaveInteraction to get data from this contract's mapping, a getter function MUST be used
+    function getWithdrawAmount(address stu) external view returns (uint) {
+        return (interestEarned[stu] + initialDeposit[stu]);
+    }
+
+    function getStudentStatus() external view returns (bool) {
+        return studentStatus[msg.sender];
+    }
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        LearnToken.transferOwnershipToken(newOwner);
+    }
 
     uint public depositTotal;
+    address public AaveInteraction;
 
     uint public interval; // maybe uint32
     uint public todayUTC0;
@@ -37,11 +61,15 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     constructor(
         address _AaveInteractionAddress,
         address _tokenAddress,
+        address _LEARNAddress,
         uint _interval
     ) {
+        AaveInteraction = _AaveInteractionAddress;
         aave = IAaveInteraction(_AaveInteractionAddress);
         aWNative = IERC20(_tokenAddress);
+        LearnToken = ILearnToken(_LEARNAddress);
 
+        owner = msg.sender;
         // Pass in number of seconds (day = 86400)
         interval = _interval;
         // Get most recent start period (midnight)
@@ -52,8 +80,9 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     uint public curATokenBal;
 
     function register() external payable {
+        require(isStudent() == false, "You are already registered");
         // This stops divide by 0 error
-        require(msg.value > 0, "not enough funds deposited");
+        require(msg.value > 0, "Not enough funds deposited");
 
         // Issue interest from previous remuneration period
         calcInterestPrevPeriod();
@@ -66,6 +95,9 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
 
         //Deposit user funds through AaveInteraction
         aave.deposit{value: msg.value}();
+
+        // Give users LEARN for registering
+        LearnToken.mintToken(msg.sender, msg.value * 2);
 
         // Update prevATokenBal for when register() calls calcInterestPrevPeriod() next time
         prevATokenBal = aWNative.balanceOf(AaveInteraction);
@@ -127,7 +159,11 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     // |------|----p--|------|
     //      tUTC0      +1     +2
     function ping() public {
+        // check that caller is a student
+        require(isStudent() == true, "You must be registered to ping");
         pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
+        pingCount[msg.sender] += 1; // update pingCount for frontend
+        LearnToken.mintToken(msg.sender, 1);
     }
 
     // KEEPER check for 24hr
@@ -160,23 +196,30 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         // );
         calcInterestPrevPeriod();
 
-        uint withdrawAmount = interestEarned[msg.sender] +
-            initialDeposit[msg.sender];
         depositTotal -= initialDeposit[msg.sender];
-        removeStudent(msg.sender);
 
         // Is there a safer way to do this?? withdraw doesn't seem to return an uint/ or any value...
         // this withdraws funds to AaveInteraction
-        aave.withdraw(msg.sender, withdrawAmount);
+        aave.withdraw(msg.sender);
+        removeStudent(msg.sender);
 
         // Update prevATokenBal for when register() calls calcInterestPrevPeriod() next time
         prevATokenBal = aWNative.balanceOf(AaveInteraction);
+    }
+
+    // for frontend to determine if connected wallet is a student
+    // Can remove completly (change require statements to check the mapping) (change front end to check mapping) 44444444444444444
+    function isStudent() public view returns (bool) {
+        return studentStatus[msg.sender];
     }
 
     function addStudent(address stu) internal {
         // for itterable mapping
         index[stu] = students.length;
         students.push(stu);
+
+        // for front-end
+        studentStatus[msg.sender] = true;
 
         // for interest calculations
         initialDeposit[stu] = msg.value;
@@ -189,6 +232,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     function removeStudent(address stu) internal {
         uint delStudentIndex = index[stu];
         delete index[stu];
+        delete studentStatus[stu];
         delete initialDeposit[stu];
         delete interestEarned[stu];
         delete recordedStartDay[stu];
@@ -208,6 +252,10 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         // [address0, address1, address4, address3]
     }
 
+    modifier onlyOwner() {
+        require(owner == msg.sender, "msg.sender must be the owner");
+        _;
+    }
     // TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING
     // TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING
 }

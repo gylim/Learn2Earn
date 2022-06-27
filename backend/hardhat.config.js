@@ -15,10 +15,10 @@ module.exports = {
   solidity: "0.8.10",
   defaultNetwork: "rinkeby",
   networks: {
-    mumbai: {
-      url: POLYGON_MUMBAI_RPC_PROVIDER,
-      accounts: [`0x${PRIVATE_KEY}`],
-    },
+    // mumbai: {
+    //   url: POLYGON_MUMBAI_RPC_PROVIDER,
+    //   accounts: [`0x${PRIVATE_KEY}`],
+    // },
     rinkeby: {
       url: RINKEBY_RPC_PROVIDER,
       accounts: [`0x${PRIVATE_KEY}`],
