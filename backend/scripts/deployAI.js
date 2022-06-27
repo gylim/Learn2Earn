@@ -7,14 +7,14 @@ async function main() {
 
   // SEE: https://docs.aave.com/developers/deployed-contracts/v3-testnet-addresses
   // WETHGateway && W<NATIVE>-AToken-<network> && PoolAddressesProvider-<network>
-  const lpAddressProviderAddress = "0xba6378f1c1d046e9eb0f538560ba7558546edf3c";
   const wETHGatewayAddress = "0xd1decc6502cc690bc85faf618da487d886e54abe";
   const wNativeATokenAddress = "0x608d11e704bafb68cfeb154bf7fd641120e33ad4";
+  const lpAddressProviderAddress = "0xba6378f1c1d046e9eb0f538560ba7558546edf3c";
 
   const aaveInteraction = await AaveInteraction.deploy(
-    lpAddressProviderAddress,
     wETHGatewayAddress,
-    wNativeATokenAddress
+    wNativeATokenAddress,
+    lpAddressProviderAddress
   );
 
   await aaveInteraction.deployed();
