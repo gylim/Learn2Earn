@@ -5,26 +5,18 @@ import "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@aave/periphery-v3/contracts/misc/interfaces/IWETHGateway.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IInterestDistribution {
+interface ILearnToEarn {
     function getWithdrawAmount(address stu) external view returns (uint);
 
-    // function getStudentStatus() external view returns (bool);
+    // function getStudentStatus() external view returns (bool); 444
 }
 
 contract AaveInteraction {
     IWETHGateway private immutable gateway;
     IERC20 private immutable aWNative;
+    ILearnToEarn private learnToEarn;
 
     bool public connected = false;
-    IInterestDistribution private distribution;
-    address private interestDistribution;
-
-    function setAddress(address _Distribution) external onlyOwner {
-        // require(!connected, "The contract has already been connected");
-        connected = true;
-        distribution = IInterestDistribution(_Distribution);
-        interestDistribution = _Distribution;
-    }
 
     // Get pool from addresses provider
     address private immutable POOL;
@@ -33,6 +25,13 @@ contract AaveInteraction {
     address private immutable aTokenHolder;
     // 0 as default, not used
     uint8 private constant referralCode = 0;
+
+    modifier onlyOwner() {
+        require(owner == msg.sender, "msg.sender must be the owner");
+        _;
+    }
+
+    event Received(address, uint256);
 
     // See arguments/argumentsAI.js for details
     constructor(
@@ -47,11 +46,23 @@ contract AaveInteraction {
         aTokenHolder = address(this);
     }
 
-    /**
-     * @dev Wraps native token to ERC20 and deposits to aave
-     */
+    /** @dev Allows this contract to receive aTokens */
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
+    }
+
+    // Add fallback function?? 444
+
+    /** @dev Opens communication path to InterestDistribution */
+    function setAddress(address _LearnToEarn) external onlyOwner {
+        // require(!connected, "The contract has already been connected"); 222
+        connected = true;
+        learnToEarn = ILearnToEarn(_LearnToEarn);
+    }
+
+    /** @dev Wraps native token to ERC20 and deposits to aave */
     function deposit() external payable {
-        // Upgrade to onlyStudent Modifier 44444444444444444
+        // Upgrade to onlyStudent Modifier 444
         gateway.depositETH{value: address(this).balance}(
             POOL,
             aTokenHolder,
@@ -60,9 +71,9 @@ contract AaveInteraction {
     }
 
     function withdraw(address _recipient) external {
-        // Upgrade to onlyStudent Modifier 444444444444444444
-        // Read mappings from InterestDistribution
-        uint withdrawAmount = distribution.getWithdrawAmount(_recipient);
+        // Upgrade to onlyStudent Modifier 444
+        // Reads mappings from InterestDistribution
+        uint withdrawAmount = learnToEarn.getWithdrawAmount(_recipient);
 
         aWNative.approve(address(gateway), withdrawAmount);
 
@@ -70,39 +81,21 @@ contract AaveInteraction {
         gateway.withdrawETH(POOL, withdrawAmount, _recipient);
     }
 
-    function deleteItAll() external onlyOwner {
-        selfdestruct(owner);
-    }
-
-    modifier onlyOwner() {
-        require(owner == msg.sender, "msg.sender must be the owner");
-        _;
-    }
+    // 444 DelegateCall
 
     // modifier onlyStudents() {
-    //     // (bool success, ) = interestDistribution.delegatecall(
-    //     //     abi.encodeWithSelector(distribution.getStudentStatus.selector)
+    //     // (bool success, ) = learnToEarn.delegatecall(
+    //     //     abi.encodeWithSelector(learnToEarn.getStudentStatus.selector)
     //     // );
     //     // require(success);
-    //     // require(distribution.getWithdrawAmount(student), "Only students can deposit funds");
+    //     // require(learnToEarn.getWithdrawAmount(student), "Only students can deposit funds");
     //     // (Current issue Delegatecall, msg.sender will not be passed on correctly)
     //     require(
-    //         distribution.getStudentStatus(msg.sender),
+    //         learnToEarn.getStudentStatus(msg.sender),
     //         "You are not a registered student"
     //     );
     //     _;
     // }
-
-    event Received(address, uint256);
-
-    /**
-     * @dev Allows this contract to receive aTokens
-     */
-    receive() external payable {
-        emit Received(msg.sender, msg.value);
-    }
-
-    // Add fallback function?? 4444444444444444444444
 }
 
 // Include this for non-native asset pool interaction

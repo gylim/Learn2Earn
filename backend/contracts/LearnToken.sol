@@ -18,7 +18,7 @@ contract LearnToken is ERC20, ERC20Burnable, Ownable {
 
     function transferOwnershipToken(address newOwner) external {
         transferOwnership(newOwner);
-        // Requires delegatecall??????? I'm pretty sure!!
+        // Requires delegatecall??????? I'm pretty sure!! 4444444444
         // Currently msg.sender is InterestDistribution, but I want 0x434...
         // to be msg.sender and newOwner = InterestDistribution.
     }
