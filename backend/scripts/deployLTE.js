@@ -3,9 +3,9 @@ const hre = require("hardhat");
 async function main() {
   const LearnToEarn = await hre.ethers.getContractFactory("LearnToEarn");
   const learnToEarn = await LearnToEarn.deploy(
-    "0xD2D925Ba2Da83D3d70703d1Ec1fd1DB2c43189C9",
+    "0x72BF91260505c08C1390b5C618e08b2816dCC579",
     "0x608d11e704bafb68cfeb154bf7fd641120e33ad4",
-    "0x1905D081af234D9E6643B93A748D3F8A405F97a4",
+    "0xd4D80d6BFA4B3C597Ab2ea57E111EadaA1Ec0dc7",
     120
   );
 

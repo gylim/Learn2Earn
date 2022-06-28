@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 interface ILearnToEarn {
     function getWithdrawAmount(address stu) external view returns (uint);
 
-    // function getStudentStatus() external view returns (bool); 444
+    // function getStudentStatus(address stu) public view returns (bool) ; 444
 }
 
 contract AaveInteraction {

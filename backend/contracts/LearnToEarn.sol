@@ -37,7 +37,7 @@ contract LearnToEarn is KeeperCompatibleInterface {
     address private owner;
     address private AaveInteraction;
     uint private depositTotal;
-    uint private interval; // maybe uint32
+    uint public interval;
     uint private todayUTC0;
     uint private prevATokenBal;
     uint private curATokenBal;
@@ -75,18 +75,19 @@ contract LearnToEarn is KeeperCompatibleInterface {
         return (interestEarned[stu] + initialDeposit[stu]);
     }
 
-    function getStudentStatus() public view returns (bool) {
-        return recordedStartDay[msg.sender] == 0 ? false : true;
+    function getPingCount(address stu) external view returns (uint) {
+        return pingCount[stu];
     }
 
-// 4444444444444444444444444444444444444444444444444444444
-    // for frontend to determine if connected wallet is a student
-    function isStudent() public view returns (bool) {
-        return recordedStartDay[msg.sender] == 0 ? false : true;
+    function getStudentStatus(address stu) public view returns (bool) {
+        return recordedStartDay[stu] == 0 ? false : true;
     }
 
     function register() external payable {
-        require(getStudentStatus() == false, "You are already registered");
+        require(
+            getStudentStatus(msg.sender) == false,
+            "You are already registered"
+        );
         // This stops divide by 0 error
         require(msg.value > 0, "Not enough funds deposited");
 
@@ -125,7 +126,10 @@ contract LearnToEarn is KeeperCompatibleInterface {
     // |------|----p--|------|
     //      tUTC0      +1     +2
     function ping() public {
-        require(getStudentStatus() == true, "You must be registered to ping");
+        require(
+            getStudentStatus(msg.sender) == true,
+            "You must be registered to ping"
+        );
         pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
         pingCount[msg.sender] += 1; // update pingCount for frontend
         LearnToken.mintToken(msg.sender, 1);
@@ -156,7 +160,7 @@ contract LearnToEarn is KeeperCompatibleInterface {
     // Distribute the accrued interest between active parties
     function calcInterestPrevPeriod() internal {
         curATokenBal = aWNative.balanceOf(AaveInteraction);
-        uint private interestPrevPeriod = curATokenBal - prevATokenBal; // always 0 or greater
+        uint interestPrevPeriod = curATokenBal - prevATokenBal; // always 0 or greater
 
         uint unclaimedInterest;
         uint unclaimedDepositTotal;
@@ -208,7 +212,7 @@ contract LearnToEarn is KeeperCompatibleInterface {
     }
 
     function removeStudent(address stu) private {
-        uint private delStudentIndex = index[stu];
+        uint delStudentIndex = index[stu];
         delete index[stu];
         delete initialDeposit[stu];
         delete interestEarned[stu];
@@ -229,5 +233,4 @@ contract LearnToEarn is KeeperCompatibleInterface {
         // // Remove a2 and move a4 into it's slot
         // [address0, address1, address4, address3]
     }
-
 }
