@@ -1,5 +1,5 @@
 {
-  "module0": {
+  "module1": {
     "number": 1,
     "name": "Day 1 - Web3",
     "questions": [
@@ -60,7 +60,7 @@
       }
     ]
   },
-  "module1": {
+  "module2": {
     "number": 2,
     "name": "Day 2 - Blockchain",
     "questions": [
@@ -119,7 +119,7 @@
       }
     ]
   },
-  "module2": {
+  "module3": {
     "number": 3,
     "name": "Day 3 - Blockchain Explorer",
     "questions": [
@@ -176,7 +176,7 @@
       }
     ]
   },
-  "module3": {
+  "module4": {
     "number": 4,
     "name": "Day 4 - Wallet",
     "questions": [
@@ -237,7 +237,7 @@
       }
     ]
   },
-  "module4": {
+  "module5": {
     "number": 5,
     "name": "Day 5 - Hashing",
     "questions": [

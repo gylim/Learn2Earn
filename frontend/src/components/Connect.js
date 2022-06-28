@@ -21,7 +21,8 @@ export default function Connect(props) {
                 <a href="https://ethereum.org/en/developers/docs/web2-vs-web3" target="_blank" rel="noopener noreferrer">Web2 vs Web3</a> by ethereum.org<br/>
                 <a href="https://cobie.substack.com/p/wtf-is-web3?s=r" target="_blank" rel="noopener noreferrer">WTF is web3</a> by Cobie<br/>
                 <a href="https://www.freecodecamp.org/news/what-is-web3" target="_blank" rel="noopener noreferrer">What is web3</a>by freeCodeCamp</p>
-            <button className="open-btn" onClick={x.toggle}>Take Quiz</button>
+            <button className="open-btn" onClick={x.toggle} disabled={x.loading}>{x.loading ? "Txn in progress" : "Take Quiz"}</button>
+            <button className="open-btn" onClick={x.withdrawFunds} disabled={x.loading}>{x.loading ? "Withdrawing" : "Withdraw Funds"}</button>
         </> :
         <>
             <h2 className='sub-title'>Hi there, {x.shortenAddress(x.currentAccount)}!</h2>

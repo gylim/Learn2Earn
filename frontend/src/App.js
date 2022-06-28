@@ -17,7 +17,7 @@ function App() {
   const [tuitionFee, setTuitionFee] = useState(0);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("default");
-  const contractAdd = "0x72e32a6C8B89dF5b605D483A5fc065AeF5Ac78BC";
+  const contractAdd = "0xDEaAba37A47650FfdD900F54C7C4F8c261366887";
   const contractABI = abi.abi;
 
   const shortenAddress = (str) => {
@@ -68,8 +68,9 @@ function App() {
         const txn = await learn2earnContract.register({ value: ethers.utils.parseUnits(tuitionFee, "ether") });
         await txn.wait();
         if (txn.hash) setLoading(false);
-        const check = await learn2earnContract.isStudent(await signer.getAddress());
+        const check = await learn2earnContract.getStudentStatus(await signer.getAddress());
         setRegistered(check);
+        fetchData().catch(console.error)
       } else console.log("Ethereum object not present");
     } catch (err) {console.log(err)}
   }
@@ -100,26 +101,28 @@ function App() {
     }
   }
 
-  // function shuffle(array) {
-  //   let currentIndex = array.length,  randomIndex;
-  //   while (currentIndex !== 0) {
-  //     randomIndex = Math.floor(Math.random() * currentIndex);
-  //     currentIndex--;
-  //     [array[currentIndex], array[randomIndex]] = [
-  //       array[randomIndex], array[currentIndex]];
-  //   }
-  //   return array;
-  // }
-
-  // function processData(obj) {
-  //   let results = obj.results
-  //   for (let i=0; i < results.length; i++) {
-  //     let ans = (results[i].incorrect_answers).concat(results[i].correct_answer)
-  //     shuffle(ans)
-  //     results[i].options = ans
-  //   }
-  //   return results;
-  // }
+  const withdrawFunds = async () => {
+    setLoading(true);
+    const {ethereum} = window;
+    try {
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
+        const txn = await learn2earnContract.payout();
+        await txn.wait();
+        if (txn.hash) setLoading(false);
+        const check = await learn2earnContract.getStudentStatus(await signer.getAddress());
+        setRegistered(check);
+      } else {
+        console.log("Ethereum object not present");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.log(err)
+      setLoading(false);
+    }
+  }
 
   function handleChange(event) {
     const {name, value} = event.target
@@ -149,15 +152,13 @@ function App() {
   }
 
   const fetchData = async () => {
-    // const res = await fetch('https://opentdb.com/api.php?amount=5');
-    // const data = await res.json();
     const {ethereum} = window;
     try {
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
-        const pingCount = await learn2earnContract.pingCount(await signer.getAddress());
+        const pingCount = await learn2earnContract.getPingCount(await signer.getAddress());
         setProgress("module" + ethers.utils.formatUnits(pingCount, 0).toString());
       } else console.log("Ethereum object not present");
     } catch (err) {console.log(err)}
@@ -182,7 +183,7 @@ function App() {
           const signer = provider.getSigner();
           const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
           const lessons = await learn2earnContract.interval();
-          const check = await learn2earnContract.isStudent(await signer.getAddress());
+          const check = await learn2earnContract.getStudentStatus(await signer.getAddress());
           setRegistered(check);
           setSessions(ethers.utils.formatUnits(lessons, 0));
         } else console.log("Ethereum object not present");
@@ -198,7 +199,7 @@ function App() {
 
   useEffect(() => {
     console.log(progress);
-    if (progress !== "default") {
+    if (progress !== "default" && progress !== "module0") {
       setTrivia(quizData[progress].questions);
     }
   }, [progress])
@@ -220,7 +221,7 @@ function App() {
           currentAccount={currentAccount} registered={registered}
           register={register} shortenAddress={shortenAddress}
           sessions={sessions} tuition={tuition} loading={loading}
-          tuitionFee={tuitionFee}
+          tuitionFee={tuitionFee} withdrawFunds={withdrawFunds}
           />}
       {isOpen && <div className="quiz">
         <h2 className="title">Here is today's assignment</h2>

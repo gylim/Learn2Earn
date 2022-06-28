@@ -6,118 +6,161 @@ import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 // MUST RESTRICT ACCESS
 // MUST INCREASE SECURITY
-// MUST BECOME GAS EFFICIENT
+// MUST BECOME GAS EFFICIENT - reduce size of uints/ immutable
 
 interface IAaveInteraction {
     function deposit() external payable;
 
-    function withdraw(address _recipient, uint _withdrawAmount) external;
+    function withdraw(address _recipient) external;
 }
 
-contract InterestDistributionTest is KeeperCompatibleInterface {
-    // Testing
-    // uint public interestPrevPeriod;
-    // uint public totalAwarded;
+interface ILearnToken {
+    function mintToken(address recipient, uint256 amount) external;
 
-    // Could neaten these up by using a struct, nested mapping ,iterable mapping??? 4444444444444444444444
+    function transferOwnershipToken(address newOwner) external;
+}
+
+contract LearnToEarn is KeeperCompatibleInterface {
+    IERC20 private immutable aWNative;
+    IAaveInteraction private immutable aave;
+    ILearnToken private immutable LearnToken;
+
+    // Change the below visibility to private 4444444444444444
     address[] public students;
-    mapping(address => uint) public index;
-    mapping(address => uint) public initialDeposit;
-    mapping(address => uint) public interestEarned;
-    mapping(address => uint) public recordedStartDay; // for payout
-    mapping(address => uint) public pingExpiresAt; // 2^32 -1 equals to 4294967295 = 07/02/2106
-    mapping(address => uint) public pingCount; // to track student progress for frontend
+    mapping(address => uint) private index;
+    mapping(address => uint) private initialDeposit;
+    mapping(address => uint) private interestEarned;
+    mapping(address => uint) private recordedStartDay; // for payout
+    mapping(address => uint) private pingExpiresAt; // 2^32 -1 equals to 4294967295 = 07/02/2106
+    mapping(address => uint) private pingCount; // to track student progress for frontend
 
-    // for frontend to determine if connected wallet is a student
-    function isStudent(address stu) public view returns(bool) {
-        for (uint i=0; i< students.length; i++) {
-            if (students[i] == stu) return true;
-        }
-        return false;
-    }
-    function addStudent(address stu) internal {
-        index[stu] = students.length;
-        students.push(stu);
-    }
+    address private owner;
+    address private AaveInteraction;
+    uint private depositTotal;
+    uint public interval;
+    uint private todayUTC0;
+    uint private prevATokenBal;
+    uint private curATokenBal;
 
-    function removeUser(address stu) internal {
-        uint delStudentIndex = index[stu];
-        delete index[stu];
-        delete initialDeposit[stu];
-        delete interestEarned[stu];
-        delete recordedStartDay[stu];
-        delete pingExpiresAt[stu];
-        delete pingCount[stu]; // for completeness
-
-        // Replace deleted user with last user
-        students[delStudentIndex] = students[students.length - 1];
-        // Update the moved student's index
-        address endStuAddress = students[students.length - 1];
-        index[endStuAddress] = delStudentIndex;
-        // Remove dead space
-        students.pop();
-
-        // // Visual demo:
-        // [address0, address1, address2, address3, address4]
-        // // Remove a2 and move a4 into it's slot
-        // [address0, address1, address4, address3]
+    modifier onlyOwner() {
+        require(owner == msg.sender, "msg.sender must be the owner");
+        _;
     }
 
-    uint public depositTotal;
+    constructor(
+        address _AaveInteractionAddress,
+        address _tokenAddress,
+        address _LEARNAddress,
+        uint _interval
+    ) {
+        AaveInteraction = _AaveInteractionAddress;
+        aave = IAaveInteraction(_AaveInteractionAddress);
+        aWNative = IERC20(_tokenAddress);
+        LearnToken = ILearnToken(_LEARNAddress);
 
-    IERC20 aPolWNative = IERC20(0x608D11E704baFb68CfEB154bF7Fd641120e33aD4);
-
-    // Interface requires the correct deployed address for AaveInteraction contract (maybe pass through constructor??) 4444444444444444
-    address AaveInteraction = 0x04930BB78fB25B66C78e8662F66Ea2053ABEE86A;
-    IAaveInteraction aave = IAaveInteraction(AaveInteraction);
-
-    uint public interval; // maybe uint32
-    uint public todayUTC0;
-
-    // Create js file for complex constructor arguments 4444444444444444
-    constructor(uint _interval) {
+        owner = msg.sender;
         // Pass in number of seconds (day = 86400)
         interval = _interval;
         // Get most recent start period (midnight)
         todayUTC0 = (block.timestamp / interval) * interval;
     }
 
-    uint public prevATokenBal;
-    uint public curATokenBal;
+    // DelegateCall 4444444444
+    function transferOwnership(address newOwner) external onlyOwner {
+        LearnToken.transferOwnershipToken(newOwner);
+    }
+
+    // For AaveInteraction to get data from this contract's mapping, a getter function MUST be used
+    function getWithdrawAmount(address stu) external view returns (uint) {
+        return (interestEarned[stu] + initialDeposit[stu]);
+    }
+
+    function getPingCount(address stu) external view returns (uint) {
+        return pingCount[stu];
+    }
+
+    function getStudentStatus(address stu) public view returns (bool) {
+        return recordedStartDay[stu] == 0 ? false : true;
+    }
 
     function register() external payable {
-        require(isStudent(msg.sender) == false, "You are already registered");
-        require(msg.value > 0, "not enough funds deposited");
+        require(
+            getStudentStatus(msg.sender) == false,
+            "You are already registered"
+        );
+        // This stops divide by 0 error
+        require(msg.value > 0, "Not enough funds deposited");
+
         // Issue interest from previous remuneration period
         calcInterestPrevPeriod();
 
-        // Add new student
-        students.push(msg.sender);
-        initialDeposit[msg.sender] = msg.value;
-        depositTotal += msg.value;
+        // Add student data to mappings
+        addStudent(msg.sender);
 
-        // For payout
-        // recordedStartDay[msg.sender] = todayUTC0 + 1 days;
-        recordedStartDay[msg.sender] = todayUTC0 + interval;
+        // Ping is active for rest of interval + 1 interval
+        ping();
 
-        // ping active for rest of day + 1 days
-        pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
-
-        //Deposit user funds into Aave
+        //Deposit user funds through AaveInteraction
         aave.deposit{value: msg.value}();
 
+        // Give users LEARN for registering
+        LearnToken.mintToken(msg.sender, msg.value * 2);
+
         // Update prevATokenBal for when register() calls calcInterestPrevPeriod() next time
-        prevATokenBal = aPolWNative.balanceOf(AaveInteraction);
+        prevATokenBal = aWNative.balanceOf(AaveInteraction);
+    }
+
+    function payout() external {
+        calcInterestPrevPeriod();
+
+        depositTotal -= initialDeposit[msg.sender];
+        aave.withdraw(msg.sender);
+        removeStudent(msg.sender);
+
+        // Update prevATokenBal for when register() calls calcInterestPrevPeriod() next time
+        prevATokenBal = aWNative.balanceOf(AaveInteraction);
+    }
+
+    // tUTC0 updates each `interval`
+    // Ping emits an expiration timestamp which lasts until the end of the next day (This allows spam/multiple pinging)
+    // |------|----p--|------|
+    //      tUTC0      +1     +2
+    function ping() public {
+        require(
+            getStudentStatus(msg.sender) == true,
+            "You must be registered to ping"
+        );
+        pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
+        pingCount[msg.sender] += 1; // update pingCount for frontend
+        LearnToken.mintToken(msg.sender, 1);
+    }
+
+    // CHAINLINK KEEPER
+    function checkUpkeep(bytes calldata)
+        external
+        view
+        override
+        returns (bool upkeepNeeded, bytes memory)
+    {
+        upkeepNeeded = (block.timestamp - todayUTC0) > interval;
+    }
+
+    function performUpkeep(bytes calldata) external override {
+        // Re-validation check
+        if ((block.timestamp - todayUTC0) > interval) {
+            todayUTC0 += interval;
+            calcInterestPrevPeriod();
+            // prevATokenBal updated to curATokenBal as no funds are added
+            prevATokenBal = curATokenBal;
+        }
     }
 
     // The difference between the current and previous token balance is accrued interest
     // Exclude in-active parties from interest repayment
     // Distribute the accrued interest between active parties
-    uint public interestPrevPeriod;
-
     function calcInterestPrevPeriod() internal {
-        curATokenBal = aPolWNative.balanceOf(AaveInteraction);
-        interestPrevPeriod = curATokenBal - prevATokenBal; // always 0 or greater
+        curATokenBal = aWNative.balanceOf(AaveInteraction);
+        uint interestPrevPeriod = curATokenBal - prevATokenBal; // always 0 or greater
 
         uint unclaimedInterest;
         uint unclaimedDepositTotal;
@@ -127,10 +170,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
             address student = students[i];
             uint deposit = initialDeposit[student];
 
-            // uint studentShare = deposit / depositTotal;
-
             if (pingExpiresAt[student] < block.timestamp) {
-                // unclaimedInterest += interestPrevPeriod * studentShare;
                 unclaimedInterest +=
                     (interestPrevPeriod * deposit) /
                     depositTotal;
@@ -142,9 +182,6 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         for (uint i = 0; i < students.length; i++) {
             address student = students[i];
             uint deposit = initialDeposit[student];
-
-            // uint studentShare = deposit / depositTotal;
-            // uint studentShareUnclaimed = deposit / (depositTotal - unclaimedDepositTotal);
 
             if (depositTotal > unclaimedDepositTotal) {
                 if (pingExpiresAt[student] >= block.timestamp) {
@@ -161,62 +198,39 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
         }
     }
 
-    // tUTC0 updates each 24hr period
-    // ping  emits an expiration timestamp which lasts until the end of the next day (This allows spam/multiple pinging)
-    // |------|----p--|------|
-    //      tUTC0      +1     +2
-    function ping() public {
-        // check that caller is a student
-        require(isStudent(msg.sender) == true, "You must be registered to ping");
-        pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
-        pingCount[msg.sender] += 1; // update pingCount for frontend
+    function addStudent(address stu) private {
+        // for itterable mapping
+        index[stu] = students.length;
+        students.push(stu);
+
+        // for interest calculations
+        initialDeposit[stu] = msg.value;
+        depositTotal += msg.value;
+
+        // For payout
+        recordedStartDay[stu] = todayUTC0 + interval;
     }
 
-    // KEEPER check for 24hr
-    function checkUpkeep(bytes calldata)
-        external
-        view
-        override
-        returns (bool upkeepNeeded, bytes memory)
-    {
-        upkeepNeeded = (block.timestamp - todayUTC0) > interval;
+    function removeStudent(address stu) private {
+        uint delStudentIndex = index[stu];
+        delete index[stu];
+        delete initialDeposit[stu];
+        delete interestEarned[stu];
+        delete recordedStartDay[stu];
+        delete pingExpiresAt[stu];
+        delete pingCount[stu];
+
+        // Replace deleted Stu with last Stu
+        students[delStudentIndex] = students[students.length - 1];
+        // Update the moved student's index
+        address endStuAddress = students[students.length - 1];
+        index[endStuAddress] = delStudentIndex;
+        // Remove dead space
+        students.pop();
+
+        // // Visual demo:
+        // [address0, address1, address2, address3, address4]
+        // // Remove a2 and move a4 into it's slot
+        // [address0, address1, address4, address3]
     }
-
-    function performUpkeep(bytes calldata) external override {
-        // Re-validation check
-        if ((block.timestamp - todayUTC0) > interval) {
-            todayUTC0 += interval;
-            calcInterestPrevPeriod();
-            // Previous balance is updated to the Current balance as no additional funds are added (as in recipient)
-            prevATokenBal = curATokenBal;
-        }
-    }
-
-    function payout() external {
-        // add security checks 4444444444444444444
-        // recordedStartDay UTC0 + number of study days
-        // require(
-        //     block.timestamp >= (recordedStartDay[msg.sender] + 20 minutes),
-        //     // (recordedStartDay[msg.sender] + (4 * studyPeriodDuration)),
-        //     "You can only receive a payout once the study session is over"
-        // );
-        calcInterestPrevPeriod();
-
-        uint withdrawAmount = interestEarned[msg.sender] +
-            initialDeposit[msg.sender];
-        depositTotal -= initialDeposit[msg.sender];
-        interestEarned[msg.sender] = 0;
-        initialDeposit[msg.sender] = 0;
-        // REMOVE student from array/struct 444444444444444444444
-
-        // Is there a safer way to do this?? withdraw doesn't seem to return an uint/ or any value...
-        // this withdraws funds to AaveInteraction
-        aave.withdraw(msg.sender, withdrawAmount);
-
-        // Update prevATokenBal for when register() calls calcInterestPrevPeriod() next time
-        prevATokenBal = aPolWNative.balanceOf(AaveInteraction);
-    }
-
-    // TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING
-    // TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING
 }
