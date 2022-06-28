@@ -4,7 +4,7 @@ import YoutubeEmbed from "./YoutubeEmbed";
 export default function Connect(props) {
 
     const Registration = (x) => { return(
-        x.isStudent ?
+        x.registered ?
         <>
             <h2 className='sub-title'>Welcome back, {x.shortenAddress(x.currentAccount)}!</h2>
             <p className='open-desc'><b>Day 1:</b><br/>

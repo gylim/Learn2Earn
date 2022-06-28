@@ -86,7 +86,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     uint public curATokenBal;
 
     function register() external payable {
-        require(isStudent() == false, "You are already registered");
+        require(isStudent(msg.sender) == false, "You are already registered");
         require(msg.value > 0, "not enough funds deposited");
         // Issue interest from previous remuneration period
         calcInterestPrevPeriod();
@@ -167,7 +167,7 @@ contract InterestDistributionTest is KeeperCompatibleInterface {
     //      tUTC0      +1     +2
     function ping() public {
         // check that caller is a student
-        require(isStudent() == false, "You must be registered to ping");
+        require(isStudent(msg.sender) == true, "You must be registered to ping");
         pingExpiresAt[msg.sender] = todayUTC0 + (2 * interval);
         pingCount[msg.sender] += 1; // update pingCount for frontend
     }
