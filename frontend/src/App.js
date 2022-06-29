@@ -17,7 +17,7 @@ function App() {
   const [tuitionFee, setTuitionFee] = useState(0);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("default");
-  const contractAdd = "0xdA6d8561BfFcE3F37d1199E2b1A9F7E918216976";
+  const contractAdd = "0x9e343Bf7966d851a2987A0fE0e0aF2F3c9759116";
   const contractABI = abi.abi;
 
   const shortenAddress = (str) => {
