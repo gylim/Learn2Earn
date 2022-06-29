@@ -106,7 +106,7 @@ contract LearnToEarn is KeeperCompatibleInterface {
         // Give users LEARN for registering
         LearnToken.mintToken(msg.sender, msg.value * 2);
 
-        // Update prevATokenBal for when register() calls calcInterestPrevPeriod() next time
+        // Update prevATokenBal for next calcInterestPrevPeriod()
         prevATokenBal = aWNative.balanceOf(AaveInteraction);
     }
 
