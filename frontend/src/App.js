@@ -17,7 +17,7 @@ function App() {
   const [tuitionFee, setTuitionFee] = useState(0);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("default");
-  const contractAdd = "0xDEaAba37A47650FfdD900F54C7C4F8c261366887";
+  const contractAdd = "0xdA6d8561BfFcE3F37d1199E2b1A9F7E918216976";
   const contractABI = abi.abi;
 
   const shortenAddress = (str) => {
@@ -35,6 +35,10 @@ function App() {
         if (accounts.length !== 0) {
             const account = accounts[0];
             setCurrentAccount(account);
+            await ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: `0x${Number(4).toString(16)}` }],
+            })
         } else {
             console.log("No authorised account found")
         }
@@ -52,6 +56,10 @@ function App() {
           }
           const accounts = await ethereum.request({ method: "eth_requestAccounts" });
           setCurrentAccount(accounts[0]);
+          await ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: `0x${Number(4).toString(16)}` }],
+          })
       } catch (error) {
           console.log(error)
       }
