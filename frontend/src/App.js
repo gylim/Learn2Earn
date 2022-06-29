@@ -12,12 +12,12 @@ function App() {
   const [answer, setAnswer] = useState({});
   const [checkAns, setCheckAns] = useState(false);
   const [currentAccount, setCurrentAccount] = useState("");
-  const [isStudent, setIsStudent] = useState(false);
+  const [registered, setRegistered] = useState(false);
   const [sessions, setSessions] = useState(0);
   const [tuitionFee, setTuitionFee] = useState(0);
-  const [acceptNew, setAcceptNew] = useState(false);
   const [loading, setLoading] = useState(false);
-  const contractAdd = "0xadEC25d0c67221Ae483DBD5Bef8Ac90f842dD330";
+  const [progress, setProgress] = useState("default");
+  const contractAdd = "0xdA6d8561BfFcE3F37d1199E2b1A9F7E918216976";
   const contractABI = abi.abi;
 
   const shortenAddress = (str) => {
@@ -35,6 +35,10 @@ function App() {
         if (accounts.length !== 0) {
             const account = accounts[0];
             setCurrentAccount(account);
+            await ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: `0x${Number(4).toString(16)}` }],
+            })
         } else {
             console.log("No authorised account found")
         }
@@ -52,6 +56,10 @@ function App() {
           }
           const accounts = await ethereum.request({ method: "eth_requestAccounts" });
           setCurrentAccount(accounts[0]);
+          await ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: `0x${Number(4).toString(16)}` }],
+          })
       } catch (error) {
           console.log(error)
       }
@@ -67,10 +75,10 @@ function App() {
         const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
         const txn = await learn2earnContract.register({ value: ethers.utils.parseUnits(tuitionFee, "ether") });
         await txn.wait();
-        console.log(txn);
         if (txn.hash) setLoading(false);
-        const [check, ] = await learn2earnContract.isStudent(await signer.getAddress());
-        setIsStudent(check);
+        const check = await learn2earnContract.getStudentStatus(await signer.getAddress());
+        setRegistered(check);
+        fetchData().catch(console.error)
       } else console.log("Ethereum object not present");
     } catch (err) {console.log(err)}
   }
@@ -101,26 +109,28 @@ function App() {
     }
   }
 
-  // function shuffle(array) {
-  //   let currentIndex = array.length,  randomIndex;
-  //   while (currentIndex !== 0) {
-  //     randomIndex = Math.floor(Math.random() * currentIndex);
-  //     currentIndex--;
-  //     [array[currentIndex], array[randomIndex]] = [
-  //       array[randomIndex], array[currentIndex]];
-  //   }
-  //   return array;
-  // }
-
-  // function processData(obj) {
-  //   let results = obj.results
-  //   for (let i=0; i < results.length; i++) {
-  //     let ans = (results[i].incorrect_answers).concat(results[i].correct_answer)
-  //     shuffle(ans)
-  //     results[i].options = ans
-  //   }
-  //   return results;
-  // }
+  const withdrawFunds = async () => {
+    setLoading(true);
+    const {ethereum} = window;
+    try {
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
+        const txn = await learn2earnContract.payout();
+        await txn.wait();
+        if (txn.hash) setLoading(false);
+        const check = await learn2earnContract.getStudentStatus(await signer.getAddress());
+        setRegistered(check);
+      } else {
+        console.log("Ethereum object not present");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.log(err)
+      setLoading(false);
+    }
+  }
 
   function handleChange(event) {
     const {name, value} = event.target
@@ -150,20 +160,26 @@ function App() {
   }
 
   const fetchData = async () => {
-    // const res = await fetch('https://opentdb.com/api.php?amount=5');
-    // const data = await res.json();
-    setTrivia(quizData.module1.questions);
+    const {ethereum} = window;
+    try {
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
+        const pingCount = await learn2earnContract.getPingCount(await signer.getAddress());
+        setProgress("module" + ethers.utils.formatUnits(pingCount, 0).toString());
+      } else console.log("Ethereum object not present");
+    } catch (err) {console.log(err)}
   }
 
   function resetQuiz() {
     setCheckAns(false);
     setFinalScore(0);
-    fetchData().catch(console.error);
+    fetchData().catch(console.error)
   }
 
   useEffect(function () {
     checkIfWalletIsConnected();
-    fetchData().catch(console.error)
   }, [])
 
   useEffect(() => {
@@ -174,21 +190,27 @@ function App() {
           const provider = new ethers.providers.Web3Provider(ethereum);
           const signer = provider.getSigner();
           const learn2earnContract = new ethers.Contract(contractAdd, contractABI, signer);
-          const lessons = await learn2earnContract.sessions();
-          const accepting = await learn2earnContract.open();
-          const [check, ] = await learn2earnContract.isStudent(await signer.getAddress());
-          setIsStudent(check);
+          const lessons = await learn2earnContract.interval();
+          const check = await learn2earnContract.getStudentStatus(await signer.getAddress());
+          setRegistered(check);
           setSessions(ethers.utils.formatUnits(lessons, 0));
-          setAcceptNew(accepting);
         } else console.log("Ethereum object not present");
       } catch (err) {console.log(err)}
     }
     contractData();
+    fetchData().catch(console.error)
   }, [currentAccount])
 
   useEffect(() => {
     ping();
   }, [finalScore])
+
+  useEffect(() => {
+    console.log(progress);
+    if (progress !== "default" && progress !== "module0") {
+      setTrivia(quizData[progress].questions);
+    }
+  }, [progress])
 
   const QnA = trivia.length>0 ? trivia.map((triv,idx) => {
     return(<Questions
@@ -204,10 +226,10 @@ function App() {
     <div className="App">
       {!isOpen &&
         <Connect toggle={toggle} connectWallet={connectWallet}
-          currentAccount={currentAccount} isStudent={isStudent}
-          register={register} acceptNew={acceptNew}
+          currentAccount={currentAccount} registered={registered}
+          register={register} shortenAddress={shortenAddress}
           sessions={sessions} tuition={tuition} loading={loading}
-          tuitionFee={tuitionFee} shortenAddress={shortenAddress}
+          tuitionFee={tuitionFee} withdrawFunds={withdrawFunds}
           />}
       {isOpen && <div className="quiz">
         <h2 className="title">Here is today's assignment</h2>

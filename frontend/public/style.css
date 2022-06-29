@@ -1,132 +1,138 @@
 body {
-    margin: 0;
-    color: #293264;
-  }
+  margin: 0;
+  color: #293264;
+  background-color: #F5F7FB;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
 
-  .App {
-    background-color: #F5F7FB;
-    height: 100%;
-  }
+.App {
+  background-color: #F5F7FB;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
 
-  .open-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-  }
+.open-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
 
-  .open-title {
-    font-family: 'Karla';
-    font-weight: 700;
-    font-size: 30px;
-  }
+.open-title {
+  font-family: 'Karla';
+  font-weight: 700;
+  font-size: 30px;
+}
 
-  .sub-title {
-    font-family: 'Karla';
-    font-weight: 500;
-    font-size: 24px;
-  }
+.sub-title {
+  font-family: 'Karla';
+  font-weight: 500;
+  font-size: 24px;
+}
 
-  .open-desc {
-    font-family: 'Inter';
-    font-weight: 400;
-    font-size: 16px;
-    padding: 0 6rem;
-  }
+.open-desc {
+  font-family: 'Inter';
+  font-weight: 400;
+  font-size: 16px;
+  padding: 0 6rem;
+}
 
-  .open-btn {
-    width: 193px;
-    height: 52px;
-    background-color: #293264;
-    font-family: 'Inter';
-    font-weight: 500;
-    font-size: 1.2rem;
-    color: #F5F7FB;
-    border-radius: 15px;
-    cursor: pointer;
-    border: 0px solid transparent;
-    margin-top: 20px;
-  }
+.open-btn {
+  width: 193px;
+  height: 52px;
+  background-color: #293264;
+  font-family: 'Inter';
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: #F5F7FB;
+  border-radius: 15px;
+  cursor: pointer;
+  border: 0px solid transparent;
+  margin-top: 20px;
+}
 
-  .check-btn {
-    margin: 0;
-    justify-self: center;
-  }
+.check-btn {
+  margin: 0;
+  justify-self: center;
+}
 
-  .open-btn:active {
-    background-color: #8972A4;
-  }
+.open-btn:active {
+  background-color: #8972A4;
+}
 
-  .quiz {
-    padding: 3% 5%;
-  }
+.quiz {
+  padding: 3% 5%;
+}
 
-  .ques-title, .title {
-    font-family: 'Karla';
-    font-weight: 700;
-    font-size: 1.2rem;
-    padding-left: 2.5%;
-  }
+.ques-title, .title {
+  font-family: 'Karla';
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding-left: 2.5%;
+}
 
-  .opt-container {
-    display: inline-flex;
-  }
+.opt-container {
+  display: inline-flex;
+}
 
-  input[type="radio"] {
-    opacity: 0.01;
-    z-index: 100;
-  }
+input[type="radio"] {
+  opacity: 0.01;
+  z-index: 100;
+}
 
-  input[type="radio"]:checked + label, .Checked + label {
-    background: #D6DBF5;
-    border: none;
-  }
+input[type="radio"]:checked + label, .Checked + label {
+  background: #D6DBF5;
+  border: none;
+}
 
-  label {
-    background-color: none;
-    font-family: 'Inter';
-    font-weight: 500;
-    font-size: 0.8rem;
-    padding: 5px;
-    border: 1px solid #4D5B9E;
-    box-sizing: border-box;
-    border-radius: 8px;
-    cursor: pointer;
-    z-index: 50;
-  }
+label {
+  background-color: none;
+  font-family: 'Inter';
+  font-weight: 500;
+  font-size: 0.8rem;
+  padding: 5px;
+  border: 1px solid #4D5B9E;
+  box-sizing: border-box;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 50;
+}
 
-  hr {
-    border: 1px solid #DBDEF0;
-    margin: 3vh 0%;
-    width: 100%;
-  }
+hr {
+  border: 1px solid #DBDEF0;
+  margin: 3vh 0%;
+  width: 100%;
+}
 
-  .score {
-    font-family: 'Inter';
-    font-weight: 700;
-    font-size: 1rem;
-  }
+.score {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-size: 1rem;
+}
 
-  .score-reset {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5%;
-    width: 100%
-  }
+.score-reset {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5%;
+  width: 100%
+}
 
-  .check-ans {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%
-  }
+.check-ans {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%
+}
 
-  button:disabled {
-    opacity: 0.5;
-  }
+button:disabled {
+  opacity: 0.5;
+}
 
-  .youtube {
-    display: inline-flex;
-  }
+.youtube {
+  display: inline-flex;
+}

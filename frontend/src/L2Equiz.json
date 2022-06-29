@@ -73,7 +73,7 @@
           "An exchange",
           "A computer on a blockchain network"
         ],
-        "correct_answer": 4
+        "correct_answer": "A computer on a blockchain network"
       },
       {
         "number": 2,
@@ -84,7 +84,7 @@
           "Apple",
           "China"
         ],
-        "correct_answer": 1
+        "correct_answer": "Satoshi Nakamoto"
       },
       {
         "number": 3,
@@ -95,7 +95,7 @@
           "A distributed ledger on a peer to peer network",
           "A type of payment"
         ],
-        "correct_answer": 3
+        "correct_answer": "A distributed ledger on a peer to peer network"
       },
       {
         "number": 4,
@@ -106,7 +106,7 @@
           "The first block of a blockchain",
           "The famous block that changed blockchain"
         ],
-        "correct_answer": 3
+        "correct_answer": "The first block of a blockchain"
       },
       {
         "number": 5,
@@ -115,7 +115,7 @@
           "True",
           "False"
         ],
-        "correct_answer": 2
+        "correct_answer": "False"
       }
     ]
   },
@@ -132,7 +132,7 @@
           "A physical place where you can see all blocks",
           "A substitute for a blockchain"
         ],
-        "correct_answer": 2
+        "correct_answer": "A software that is connected to nodes and draws data from the blockchain"
       },
       {
         "number": 2,
@@ -141,7 +141,7 @@
           "True",
           "False"
         ],
-        "correct_answer": 1
+        "correct_answer": "True"
       },
       {
         "number": 3,
@@ -152,7 +152,7 @@
           "A person doing calculations to verify a transaction",
           "Computers that verify and validate blockchain transactions"
         ],
-        "correct_answer": 4
+        "correct_answer": "Computers that verify and validate blockchain transactions"
       },
       {
         "number": 4,
@@ -162,7 +162,7 @@
           "One person at a time",
           "Only people involved in the transaction"
         ],
-        "correct_answer": 1
+        "correct_answer": "Multiple people simultaneously"
       },
       {
         "number": 5,
@@ -172,7 +172,7 @@
           "Yes, but only within a certain time frame",
           "No, they cannot be altered"
         ],
-        "correct_answer": 3
+        "correct_answer": "No, they cannot be altered"
       }
     ]
   },
@@ -189,7 +189,7 @@
           "Wallet",
           "CD player"
         ],
-        "correct_answer": 3
+        "correct_answer": "Wallet"
       },
       {
         "number": 2,
@@ -200,7 +200,7 @@
           "In a hot wallet",
           "In a cold wallet"
         ],
-        "correct_answer": 1
+        "correct_answer": "On an exchange"
       },
       {
         "number": 3,
@@ -211,18 +211,18 @@
           "A Bitcoin ATM",
           "All of the above"
         ],
-        "correct_answer": 1
+        "correct_answer": "All of the above"
       },
       {
         "number": 4,
         "question": "What is a private key?",
         "answers": [
           "A key on a keychain",
-          "A key that’s publicly accessible",
+          "A key you hide under your bed",
           "A key not to be given to the public",
           "A key that you can use to hack someone’s car"
         ],
-        "correct_answer": 3
+        "correct_answer": "A key not to be given to the public"
       },
       {
         "number": 5,
@@ -233,7 +233,7 @@
           "A key that opens a secret door",
           "A key that grants you access to someone’s account"
         ],
-        "correct_answer": 2
+        "correct_answer": "A key that’s publicly accessible"
       }
     ]
   },
@@ -250,7 +250,7 @@
           "Product to Product",
           "Private key to Public key"
         ],
-        "correct_answer": 2
+        "correct_answer": "Peer to Peer"
       },
       {
         "number": 2,
@@ -261,7 +261,7 @@
           "Public and Private keys",
           "Proof of Stake"
         ],
-        "correct_answer": 3
+        "correct_answer": "Public and Private keys"
       },
       {
         "number": 3,
@@ -272,7 +272,7 @@
           "Takes an input of any length and returns a fixed-length string",
           "Gas"
         ],
-        "correct_answer": 3
+        "correct_answer": "Takes an input of any length and returns a fixed-length string"
       },
       {
         "number": 4,
@@ -283,7 +283,7 @@
           "Timestamp",
           "All of these above"
         ],
-        "correct_answer": 4
+        "correct_answer": "All of these above"
       },
       {
         "number": 5,
@@ -292,7 +292,7 @@
           "Yes",
           "No"
         ],
-        "correct_answer": 1
+        "correct_answer": "Yes"
       }
     ]
   }

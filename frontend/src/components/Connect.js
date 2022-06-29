@@ -4,7 +4,7 @@ import YoutubeEmbed from "./YoutubeEmbed";
 export default function Connect(props) {
 
     const Registration = (x) => { return(
-        x.isStudent ?
+        x.registered ?
         <>
             <h2 className='sub-title'>Welcome back, {x.shortenAddress(x.currentAccount)}!</h2>
             <p className='open-desc'><b>Day 1:</b><br/>
@@ -21,12 +21,13 @@ export default function Connect(props) {
                 <a href="https://ethereum.org/en/developers/docs/web2-vs-web3" target="_blank" rel="noopener noreferrer">Web2 vs Web3</a> by ethereum.org<br/>
                 <a href="https://cobie.substack.com/p/wtf-is-web3?s=r" target="_blank" rel="noopener noreferrer">WTF is web3</a> by Cobie<br/>
                 <a href="https://www.freecodecamp.org/news/what-is-web3" target="_blank" rel="noopener noreferrer">What is web3</a>by freeCodeCamp</p>
-            <button className="open-btn" onClick={x.toggle}>Take Quiz</button>
+            <button className="open-btn" onClick={x.toggle} disabled={x.loading}>{x.loading ? "Txn in progress" : "Take Quiz"}</button>
+            <button className="open-btn" onClick={x.withdrawFunds} disabled={x.loading}>{x.loading ? "Withdrawing" : "Withdraw Funds"}</button>
         </> :
         <>
             <h2 className='sub-title'>Hi there, {x.shortenAddress(x.currentAccount)}!</h2>
             <p className='open-desc'>You are not registered yet.{"\n"}
-                The current cohort has {x.sessions} lessons
+                The frequency of check-in is {x.sessions/60} minutes
             </p>
             <p className='open-desc'>How much tuition would you like to deposit?{"\n"}
                 The more you put in, the more you get out!
