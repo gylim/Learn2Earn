@@ -1,15 +1,8 @@
-# Basic Sample Hardhat Project
+# Learn 2 Earn
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+This protocol is designed to motivate students by way of monetary incentives. Any front end can use this protocol, we have created one example, to show how it could work.
 
-Try running some of the following tasks:
+See more: https://docs.google.com/presentation/d/1L6XfxG23aUsGGhvUSHuiCO6P3ohSFRL4u-UB57iVQnk/edit?usp=sharing
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+Test it out yourself: https://learn2earn-flax.vercel.app/
+(Use rinkeby)
